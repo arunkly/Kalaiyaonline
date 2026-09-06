@@ -1,0 +1,102 @@
+export type Category = string;
+
+export type Article = {
+  slug: string;
+  title: string;
+  titleNp?: string;
+  excerpt: string;
+  body: string[];
+  category: Category;
+  tags: string[];
+  author: string;
+  date: string;
+  location: string;
+  imageUrl?: string;
+  featured?: boolean;
+  breaking?: boolean;
+  sourceUrl: string;
+  lang: "en" | "np";
+};
+
+export const HEADLINE_SLUG = "headline";
+
+export const CATEGORIES: { slug: Category; label: string; labelNp: string }[] = [
+  { slug: "headline", label: "Headline", labelNp: "हेडलाइन" },
+  { slug: "local", label: "Local", labelNp: "स्थानीय" },
+  { slug: "politics", label: "Politics", labelNp: "राजनीति" },
+  { slug: "crime", label: "Crime", labelNp: "अपराध" },
+  { slug: "business", label: "Business", labelNp: "व्यापार" },
+  { slug: "health", label: "Health", labelNp: "स्वास्थ्य" },
+  { slug: "sports", label: "Sports", labelNp: "खेलकुद" },
+  { slug: "community", label: "Community", labelNp: "समुदाय" },
+  { slug: "development", label: "Development", labelNp: "विकास" },
+];
+
+export const articles: Article[] = [];
+
+export function byCategory(slug: Category) {
+  return articles.filter((a) => a.category === slug);
+}
+
+export function isHeadline(category: string) {
+  return category === HEADLINE_SLUG || category === "हेडलाइन";
+}
+
+export function latestArticles() {
+  return [...articles].sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export function searchArticles(q: string) {
+  const n = q.trim().toLowerCase();
+  if (!n) return [];
+  return articles.filter((a) =>
+    [a.title, a.titleNp ?? "", a.excerpt, a.tags.join(" "), a.location, a.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(n),
+  );
+}
+
+export function relatedArticles(article: Article, limit = 3) {
+  return articles
+    .filter(
+      (a) =>
+        a.slug !== article.slug &&
+        (a.category === article.category ||
+          a.tags.some((t) => article.tags.includes(t))),
+    )
+    .slice(0, limit);
+}
+
+const NP_MONTHS = [
+  "जनवरी",
+  "फेब्रुअरी",
+  "मार्च",
+  "अप्रिल",
+  "मे",
+  "जुन",
+  "जुलाई",
+  "अगस्ट",
+  "सेप्टेम्बर",
+  "अक्टोबर",
+  "नोभेम्बर",
+  "डिसेम्बर",
+];
+
+const NP_DIGITS = "०१२३४५६७८९";
+
+export function toNpDigits(n: number | string) {
+  return String(n).replace(/\d/g, (d) => NP_DIGITS[Number(d)] ?? d);
+}
+
+export function formatDate(iso: string | Date | null | undefined) {
+  if (!iso) return "";
+  const raw = iso instanceof Date ? iso.toISOString() : String(iso);
+  const [y, m, d] = raw.slice(0, 10).split("-").map(Number);
+  const month = NP_MONTHS[(m ?? 1) - 1] ?? "";
+  return `${toNpDigits(d ?? 1)} ${month} ${toNpDigits(y ?? 2026)}`;
+}
+
+export function displayTitle(article: { title: string; titleNp?: string }) {
+  return article.titleNp ?? article.title;
+}

@@ -1,0 +1,131 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { isAdminEmail } from "@/lib/admin";
+import { authMiddleware } from "@/lib/auth/middleware";
+
+export type AppRole = "member" | "editor" | "admin";
+export type AppUserRow = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: AppRole;
+};
+
+async function assertAdmin(userId: string) {
+  const { getSessionUser } = await import("@/lib/auth/verify.server");
+  const session = await getSessionUser();
+  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
+    throw new Error("Forbidden");
+  }
+}
+
+export const listPublicMembers = createServerFn({ method: "GET" }).handler(async () => {
+  const { getSql } = await import("@/lib/db");
+  const sql = await getSql();
+  const users = await sql<{ id: string; name: string | null }>`
+    select id, name from "user" order by "createdAt" desc limit 24
+  `;
+  const profiles = await sql<{ userId: string; displayName: string; photoUrl: string; status: string }>`
+    select user_id as "userId", display_name as "displayName", photo_url as "photoUrl", status
+    from member_profiles
+  `;
+  return users.map((u) => {
+    const p = profiles.find((x) => x.userId === u.id);
+    return {
+      id: u.id,
+      name: p?.displayName || u.name || "सदस्य",
+      photo: p?.photoUrl || "",
+      status: p?.status || "",
+    };
+  });
+});
+
+export const getPublicProfile = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().min(1).max(80) }))
+  .handler(async ({ data }) => {
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const users = await sql<{ id: string; name: string | null; email: string | null }>`
+      select id, name, email from "user" where id = ${data.id} limit 1
+    `;
+    const user = users[0];
+    if (!user) return null;
+    const profiles = await sql<{
+      displayName: string;
+      photoUrl: string;
+      address: string;
+      phone: string;
+      status: string;
+    }>`
+      select display_name as "displayName", photo_url as "photoUrl", address, phone, status
+      from member_profiles
+      where user_id = ${data.id}
+      limit 1
+    `;
+    const p = profiles[0];
+    return {
+      id: user.id,
+      name: p?.displayName || user.name || "सदस्य",
+      photo: p?.photoUrl || "",
+      address: p?.address || "",
+      phone: p?.phone || "",
+      status: p?.status || "",
+    };
+  });
+
+export const listAppUsers = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const users = await sql<{ id: string; name: string | null; email: string | null }>`
+      select id, name, email from "user" order by "createdAt" desc
+    `;
+    const roles = await sql<{ userId: string; role: string }>`
+      select user_id as "userId", role from user_roles
+    `;
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: (roles.find((r) => r.userId === u.id)?.role as AppRole) || "member",
+    })) satisfies AppUserRow[];
+  });
+
+export const setUserRole = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ userId: z.string().min(1).max(80), role: z.enum(["member", "editor", "admin"]) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    await sql`
+      insert into user_roles (user_id, role, updated_at)
+      values (${data.userId}, ${data.role}, now())
+      on conflict (user_id) do update set role = excluded.role, updated_at = now()
+    `;
+    return { ok: true };
+  });
+
+export const deleteAppUser = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ userId: z.string().min(1).max(80) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    if (data.userId === context.userId) throw new Error("आफ्नो खाता मेट्न मिल्दैन।");
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const rows = await sql<{ email: string | null }>`
+      select email from "user" where id = ${data.userId} limit 1
+    `;
+    if (isAdminEmail(rows[0]?.email)) throw new Error("मुख्य प्रशासक मेट्न मिल्दैन।");
+    await sql`delete from member_profiles where user_id = ${data.userId}`;
+    await sql`delete from user_roles where user_id = ${data.userId}`;
+    await sql`delete from friend_links where user_id = ${data.userId} or peer_id = ${data.userId}`;
+    await sql`delete from chat_messages where from_id = ${data.userId} or to_id = ${data.userId}`;
+    await sql`delete from "session" where "userId" = ${data.userId}`;
+    await sql`delete from "account" where "userId" = ${data.userId}`;
+    await sql`delete from "user" where id = ${data.userId}`;
+    return { ok: true };
+  });
