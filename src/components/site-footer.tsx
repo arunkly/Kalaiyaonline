@@ -1,6 +1,34 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, MapPin, Phone } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  Camera,
+  Droplet,
+  Home,
+  Info,
+  LineChart,
+  Mail,
+  MapPin,
+  Phone,
+  Shield,
+  Users,
+} from "lucide-react";
 import type { AboutPage } from "@/lib/about";
+
+const FOOTER_LINKS = [
+  { to: "/", label: "गृह", icon: Home },
+  { to: "/gallery", label: "ग्यालरी", icon: Camera },
+  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2 },
+  { to: "/blood", label: "रक्तदाता", icon: Droplet },
+  { to: "/members", label: "दर्ता सदस्य", icon: Users },
+  { to: "/market", label: "सेयर बजार", icon: LineChart },
+  { to: "/patro", label: "पात्रो", icon: CalendarDays },
+  { to: "/about", label: "हाम्रोबारे", icon: Info },
+  { to: "/privacy", label: "गोपनीयता", icon: Shield },
+] as const;
+
+const chip =
+  "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[#e8efe9] transition hover:border-[#ffd27a]/50 hover:bg-[#ffd27a]/10 hover:text-[#ffd27a]";
 
 export function SiteFooter({ about }: { about: AboutPage | null }) {
   const blurb = (about?.body || "कलैया, बारा र मधेशका स्थानीय समाचार।").slice(0, 160);
@@ -13,17 +41,6 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
           <img src="/logo-dark.jpg" alt="KalaiyaOnline.com" className="h-10 w-auto" />
           <p className="mt-3 font-display text-lg">{about?.orgName || "KalaiyaOnline"}</p>
           <p className="mt-2 text-sm leading-relaxed text-white/70">{blurb}</p>
-          <nav className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-            <Link to="/" className="hover:text-mark">गृह</Link>
-            <Link to="/gallery" className="hover:text-mark">ग्यालरी</Link>
-            <Link to="/directory" className="hover:text-mark">डाइरेक्ट्री</Link>
-            <Link to="/blood" className="hover:text-mark">रक्तदाता</Link>
-            <Link to="/members" className="hover:text-mark">दर्ता सदस्य</Link>
-            <Link to="/market" className="hover:text-mark">सेयर बजार</Link>
-            <Link to="/patro" className="hover:text-mark">पात्रो</Link>
-            <Link to="/about" className="hover:text-mark">हाम्रोबारे</Link>
-            <Link to="/privacy" className="hover:text-mark">गोपनीयता</Link>
-          </nav>
         </div>
         <div>
           <p className="text-[11px] font-bold tracking-[0.18em] text-mark">सम्पर्क</p>
@@ -68,6 +85,17 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
               <p className="text-white/50">हाम्रोबारेबाट दर्ता विवरण थप्नुहोस्।</p>
             ) : null}
           </div>
+        </div>
+        <div className="sm:col-span-3">
+          <p className="text-[11px] font-bold tracking-[0.18em] text-mark">मेनु</p>
+          <nav className="mt-3 flex flex-wrap gap-2 text-sm">
+            {FOOTER_LINKS.map(({ to, label, icon: Icon }) => (
+              <Link key={to} to={to} className={chip}>
+                <Icon className="size-3.5 shrink-0" />
+                {label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
       <div className="border-t border-white/10 bg-[#0b1a12] px-4 py-4 pb-28 sm:px-6 lg:pb-4">
