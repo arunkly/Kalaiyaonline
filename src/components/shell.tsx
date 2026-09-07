@@ -15,6 +15,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { NoticeBell } from "@/components/notice-bell";
 import { SiteFooter } from "@/components/site-footer";
 import { MarketTicker } from "@/components/market-ticker";
+import { WeatherBar } from "@/components/weather-bar";
 import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
 import { useCategories } from "@/lib/use-categories";
@@ -131,6 +132,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <MarketTicker />
+        <WeatherBar />
       </header>
 
       {open ? (
@@ -227,53 +229,6 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </nav>
-      {footerOpen ? (
-        <div className="fixed inset-x-0 bottom-24 z-40 mx-3 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-xl lg:hidden">
-          <p className="px-3 py-2 text-[11px] font-bold tracking-[0.16em] text-muted">थप</p>
-          <Link
-            to="/date-converter"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip"
-          >
-            मिति कन्भर्टर
-          </Link>
-          <Link
-            to="/market"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
-          >
-            सेयर बजार
-          </Link>
-          <Link
-            to="/patro"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
-          >
-            पात्रो
-          </Link>
-          <Link
-            to="/blood"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip"
-          >
-            रक्तदाता
-          </Link>
-          <Link
-            to="/about"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
-          >
-            हाम्रोबारे
-          </Link>
-          <Link
-            to="/privacy"
-            onClick={() => setFooterOpen(false)}
-            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
-          >
-            गोपनीयता नीति
-          </Link>
-        </div>
-      ) : null}
     </div>
   );
 }
