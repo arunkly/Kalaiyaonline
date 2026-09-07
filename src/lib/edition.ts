@@ -6,6 +6,16 @@ import {
   type DeskStory,
 } from "@/lib/desk";
 
+function parseGalleryField(raw?: string) {
+  if (!raw) return [] as string[];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string" && Boolean(v.trim())) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function deskToArticle(s: DeskStory): Article {
   const created = s.createdAt;
   const date =
@@ -31,6 +41,7 @@ export function deskToArticle(s: DeskStory): Article {
     date,
     location: s.location || "कलैया",
     imageUrl: s.imageUrl || undefined,
+    gallery: parseGalleryField(s.galleryUrls),
     featured: true,
     sourceUrl: `https://kalaiyaonline.com/${s.slug}/`,
     lang: "np",
