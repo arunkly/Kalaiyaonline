@@ -1,17 +1,26 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
-import { isHeadline, toNpDigits } from "@/data/articles";
+import { isHeadline, toNpDigits, type Article } from "@/data/articles";
 import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
 import { useEdition } from "@/lib/edition";
-import { useEffect, useState } from "react";
+import { categoryLabel, useCategories } from "@/lib/use-categories";
+import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({ component: Home });
 
+const SECTION_ORDER = ["local", "politics", "business", "sports"];
+
+function matchesCategory(article: Article, slug: string, label: string) {
+  const cat = (article.category || "").toLowerCase();
+  return cat === slug.toLowerCase() || cat === label.toLowerCase() || article.category === label;
+}
+
 function Home() {
   const edition = useEdition();
+  const cats = useCategories();
   const [albums, setAlbums] = useState<GalleryPost[]>([]);
   const [places, setPlaces] = useState<DirItem[]>([]);
   const [dirCats, setDirCats] = useState<DirCategory[]>([]);
@@ -20,16 +29,32 @@ function Home() {
       .then(setAlbums)
       .catch(() => undefined);
     void Promise.all([listDirEntries(), listDirCategories()])
-      .then(([rows, cats]) => {
+      .then(([rows, nextCats]) => {
         setPlaces(rows);
-        setDirCats(cats);
+        setDirCats(nextCats);
       })
       .catch(() => undefined);
   }, []);
-  const all = [...edition].sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  const all = useMemo(() => [...edition].sort((a, b) => (a.date < b.date ? 1 : -1)), [edition]);
   const hero = all.find((a) => isHeadline(a.category));
-  const rest = all.filter((a) => a.slug !== hero?.slug);
-  const side = rest.slice(0, 6);
+  const pool = all.filter((a) => a.slug !== hero?.slug && !isHeadline(a.category));
+
+  const orderedCats = useMemo(() => {
+    const rest = cats.filter((c) => c.slug !== "headline" && !SECTION_ORDER.includes(c.slug));
+    const first = SECTION_ORDER.map((slug) => cats.find((c) => c.slug === slug)).filter(Boolean);
+    return [...first, ...rest] as typeof cats;
+  }, [cats]);
+
+  const sections = orderedCats
+    .map((c) => ({
+      slug: c.slug,
+      label: c.label || categoryLabel(cats, c.slug),
+      items: pool.filter((a) => matchesCategory(a, c.slug, c.label)).slice(0, 5),
+    }))
+    .filter((s) => s.items.length);
+
+  const side = pool.slice(0, 6);
 
   return (
     <div className="space-y-8">
@@ -44,14 +69,27 @@ function Home() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-8">
-          <p className="mb-4 font-display text-2xl">आजको डेस्क</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {rest.slice(0, 6).map((a) => (
-              <ArticleCard key={a.slug} article={a} />
-            ))}
-          </div>
-        </section>
+        <div className="space-y-10 lg:col-span-8">
+          {sections.map((section) => (
+            <section key={section.slug}>
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <p className="font-display text-2xl">{section.label}</p>
+                <Link
+                  to="/category/$slug"
+                  params={{ slug: section.slug }}
+                  className="text-sm font-semibold text-[#14934e]"
+                >
+                  सबै
+                </Link>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {section.items.map((a) => (
+                  <ArticleCard key={a.slug} article={a} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
         <aside className="rounded-[1.5rem] border border-line bg-white p-4 lg:col-span-4">
           <p className="text-sm font-bold tracking-[0.12em] text-[#14934e]">ताजा शीर्षक</p>
           <div className="mt-2 divide-y divide-line">
@@ -68,17 +106,6 @@ function Home() {
           </div>
         </aside>
       </div>
-
-      {rest.slice(6).length ? (
-        <section>
-          <p className="mb-4 font-display text-2xl">थप समाचार</p>
-          <div className="space-y-2 rounded-[1.5rem] bg-white p-2">
-            {rest.slice(6).map((a) => (
-              <ArticleCard key={a.slug} article={a} variant="text" />
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-[1.5rem] bg-white p-4">

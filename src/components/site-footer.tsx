@@ -70,8 +70,11 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 px-4 py-4 pb-28 text-center text-xs text-white/50 sm:px-6 lg:pb-4">
-        © {new Date().getFullYear()} {about?.orgName || "KalaiyaOnline"}
+      <div className="border-t border-white/10 bg-[#0b1a12] px-4 py-4 pb-28 sm:px-6 lg:pb-4">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-center text-xs sm:flex-row sm:text-left">
+          <p className="text-white/45">© {new Date().getFullYear()} {about?.orgName || "KalaiyaOnline"}</p>
+          <p className="font-medium text-[#ffd27a]">Designed and Developed By : Arun Kumar Sah</p>
+        </div>
       </div>
     </footer>
   );
