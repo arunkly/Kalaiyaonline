@@ -9,6 +9,44 @@ export type MailSettings = {
   hasKey: boolean;
 };
 
+export async function sendWelcomeEmail(to: string, name?: string) {
+  const who = ((name || "").trim() || "सदस्य").replace(/[<>&]/g, "").slice(0, 80);
+  const origin = (
+    process.env.BETTER_AUTH_URL ||
+    process.env.APP_URL ||
+    "https://www.kalaiyaonline.com"
+  ).replace(/\/$/, "");
+  const html = `
+    <div style="font-family:Mukta,Arial,sans-serif;line-height:1.7;color:#1b3d1f;max-width:560px">
+      <p style="font-size:18px;font-weight:700">नमस्ते ${who},</p>
+      <p>KalaiyaOnline मा स्वागत छ — कलैया, बारा र मधेशको स्थानीय समाचार एप।</p>
+      <p>तपाईं यहाࠖ गर्न सक्नुहुन्छ:</p>
+      <ul>
+        <li>समाचार पढ्ने, लाइक/कमेन्ट गर्ने र सेभ गर्ने</li>
+        <li>ग्यालरी हेर्ने र डाइरेक्ट्री खोज्ने</li>
+        <li>दर्ता सदस्यसङ्ग च्याट गर्ने (आपत्तिजनक शब्द नचलाउनुहोस्)</li>
+        <li>रक्तदाता सूचीमा नाम राख्ने</li>
+        <li>सेयर बजार, पात्रो र मौसम हेर्ने</li>
+        <li>प्रोफाइल फोटो, मोबाइल र ठेगाना अद्यावधिक गर्ने</li>
+      </ul>
+      <p><a href="${origin}" style="color:#2E7D32">kalaiyaonline.com</a> मा लगइन गरेर सुरु गर्नुहोस्।</p>
+      <p style="color:#666;font-size:13px">KalaiyaOnline टोली</p>
+    </div>
+  `;
+  await sendAppEmail(to, "KalaiyaOnline मा स्वागत छ", html);
+}
+
+export const sendWelcomeMail = createServerFn({ method: "POST" })
+  .validator(z.object({ email: z.string().email(), name: z.string().max(80).optional() }))
+  .handler(async ({ data }) => {
+    try {
+      await sendWelcomeEmail(data.email, data.name);
+    } catch {
+      /* mail optional */
+    }
+    return { ok: true as const };
+  });
+
 export async function sendAppEmail(to: string, subject: string, html: string) {
   const { getSql } = await import("@/lib/db");
   const sql = await getSql();
