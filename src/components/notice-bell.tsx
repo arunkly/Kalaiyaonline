@@ -55,7 +55,10 @@ export function NoticeBell() {
       setToast(n);
       if (allowPush) {
         try {
-          new Notification("KalaiyaOnline", { body: n.title });
+          new Notification(n.kind === "chat" ? "नयाँ च्याट" : "KalaiyaOnline", {
+            body: n.title,
+            tag: n.id,
+          });
         } catch {
           /* ignored */
         }
@@ -68,7 +71,7 @@ export function NoticeBell() {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), 45_000);
+    const id = window.setInterval(() => void load(), user ? 8000 : 45_000);
     return () => window.clearInterval(id);
   }, [user]);
 

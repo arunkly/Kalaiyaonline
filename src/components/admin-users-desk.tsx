@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { deleteAppUser, listAppUsers, setUserRole, type AppRole, type AppUserRow } from "@/lib/users";
+import { deleteAppUser, listAppUsers, listChatWarnings, setUserRole, type AppRole, type AppUserRow, type ChatWarning } from "@/lib/users";
 
 export function UsersDeskPanel() {
   const [rows, setRows] = useState<AppUserRow[]>([]);
+  const [warnings, setWarnings] = useState<ChatWarning[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   function refresh() {
     void listAppUsers()
       .then(setRows)
       .catch((err) => setError(err instanceof Error ? err.message : "प्रयोगकर्ता लोड भएन।"));
+    void listChatWarnings()
+      .then(setWarnings)
+      .catch(() => undefined);
   }
 
   useEffect(() => {
@@ -54,6 +58,16 @@ export function UsersDeskPanel() {
             </div>
           </li>
         ))}
+      </ul>
+      <h3 className="mt-8 font-display text-xl">च्याट चेतावनी लग</h3>
+      <ul className="mt-3 divide-y divide-line">
+        {warnings.map((w) => (
+          <li key={w.id} className="py-3 text-sm">
+            <p className="font-semibold">{w.name} · {w.email}</p>
+            <p className="text-muted">{w.body}</p>
+          </li>
+        ))}
+        {!warnings.length ? <li className="py-3 text-sm text-muted">लग खाली छ।</li> : null}
       </ul>
     </section>
   );

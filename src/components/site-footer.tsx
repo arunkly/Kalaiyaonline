@@ -18,6 +18,9 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
             <Link to="/gallery" className="hover:text-mark">ग्यालरी</Link>
             <Link to="/directory" className="hover:text-mark">डाइरेक्ट्री</Link>
             <Link to="/blood" className="hover:text-mark">रक्तदाता</Link>
+            <Link to="/members" className="hover:text-mark">दर्ता सदस्य</Link>
+            <Link to="/market" className="hover:text-mark">सेयर बजार</Link>
+            <Link to="/patro" className="hover:text-mark">पात्रो</Link>
             <Link to="/about" className="hover:text-mark">हाम्रोबारे</Link>
             <Link to="/privacy" className="hover:text-mark">गोपनीयता</Link>
           </nav>

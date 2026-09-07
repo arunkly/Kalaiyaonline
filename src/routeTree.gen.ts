@@ -20,6 +20,9 @@ import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MarketRouteImport } from './routes/market'
+import { Route as MembersRouteImport } from './routes/members'
+import { Route as PatroRouteImport } from './routes/patro'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SavedRouteImport } from './routes/saved'
@@ -85,6 +88,21 @@ const GalleryRoute = GalleryRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersRoute = MembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatroRoute = PatroRouteImport.update({
+  id: '/patro',
+  path: '/patro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -155,6 +173,9 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
+  '/market': typeof MarketRoute
+  '/members': typeof MembersRoute
+  '/patro': typeof PatroRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -179,6 +200,9 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
+  '/market': typeof MarketRoute
+  '/members': typeof MembersRoute
+  '/patro': typeof PatroRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -204,6 +228,9 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
+  '/market': typeof MarketRoute
+  '/members': typeof MembersRoute
+  '/patro': typeof PatroRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -230,6 +257,9 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/gallery'
     | '/login'
+    | '/market'
+    | '/members'
+    | '/patro'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -254,6 +284,9 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/gallery'
     | '/login'
+    | '/market'
+    | '/members'
+    | '/patro'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -278,6 +311,9 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/gallery'
     | '/login'
+    | '/market'
+    | '/members'
+    | '/patro'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -303,6 +339,9 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GalleryRoute: typeof GalleryRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MarketRoute: typeof MarketRoute
+  MembersRoute: typeof MembersRoute
+  PatroRoute: typeof PatroRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SavedRoute: typeof SavedRoute
@@ -390,6 +429,27 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members': {
+      id: '/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof MembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patro': {
+      id: '/patro'
+      path: '/patro'
+      fullPath: '/patro'
+      preLoaderRoute: typeof PatroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -517,6 +577,9 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   GalleryRoute: GalleryRouteWithChildren,
   LoginRoute: LoginRoute,
+  MarketRoute: MarketRoute,
+  MembersRoute: MembersRoute,
+  PatroRoute: PatroRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SavedRoute: SavedRoute,

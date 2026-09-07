@@ -22,36 +22,42 @@ export function ArticleCard({
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className="group card-lift block overflow-hidden rounded-2xl border border-line bg-ink text-paper"
+        className="group grid overflow-hidden rounded-[1.75rem] bg-[#10261a] text-white lg:grid-cols-12"
       >
-        <div className="relative min-h-72 overflow-hidden sm:min-h-[26rem]">
+        <div className="relative min-h-64 lg:col-span-7 lg:min-h-[28rem]">
           {article.imageUrl ? (
-            <img
-              src={article.imageUrl}
-              alt=""
-              className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : null}
-          <div
-            className={`relative flex min-h-72 flex-col justify-end px-5 py-8 sm:min-h-[26rem] sm:px-10 sm:py-12 ${
-              article.imageUrl
-                ? "bg-gradient-to-t from-ink via-ink/75 to-ink/10"
-                : "bg-gradient-to-br from-crimson-deep via-ink to-crimson"
-            }`}
-          >
-            <p className="inline-flex w-fit items-center rounded-full bg-paper/15 px-3 py-1 text-[11px] font-semibold tracking-wide text-paper backdrop-blur-sm">
-              {article.breaking ? "ब्रेकिङ" : label} · {article.location}
-            </p>
-            <h2 className="mt-4 max-w-3xl font-display text-3xl leading-[1.15] tracking-tight sm:text-5xl">
-              {title}
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-paper/82 sm:text-base">
-              {article.excerpt}
-            </p>
-            <p className="mt-6 text-xs tracking-wide text-paper/60">
-              {article.author} · {date}
-            </p>
-          </div>
+            <img src={article.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#14934e] to-[#10261a]" />
+          )}
+          <span className="absolute left-4 top-4 rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold tracking-wide">
+            हेडलाइन
+          </span>
+        </div>
+        <div className="flex flex-col justify-end p-6 lg:col-span-5 lg:p-8">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-[#8dffb0]">{label} · {article.location}</p>
+          <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">{title}</h2>
+          {article.excerpt ? <p className="mt-3 line-clamp-3 text-sm text-white/75">{article.excerpt}</p> : null}
+          <p className="mt-5 text-xs text-white/55">{article.author} · {date}</p>
+        </div>
+      </Link>
+    );
+  }
+
+  if (variant === "standard") {
+    return (
+      <Link
+        to="/article/$slug"
+        params={{ slug: article.slug }}
+        className="group overflow-hidden rounded-2xl border border-[#d7e4db] bg-white"
+      >
+        {article.imageUrl ? (
+          <img src={article.imageUrl} alt="" className="h-44 w-full object-cover" />
+        ) : null}
+        <div className="p-4">
+          <p className="text-[11px] font-semibold tracking-wider text-[#14934e]">{label}</p>
+          <h3 className="mt-1 font-display text-xl leading-snug group-hover:text-[#14934e]">{title}</h3>
+          <p className="mt-2 text-xs text-muted">{date}</p>
         </div>
       </Link>
     );

@@ -29,6 +29,16 @@ function daysInBsYear(year: number) {
   return (days[String(year)] ?? []).reduce((a: number, b: number) => a + b, 0);
 }
 
+export function daysInBsMonth(year: number, month: number) {
+  return days[String(year)]?.[month - 1] ?? 0;
+}
+
+export function availableBsYears() {
+  return Object.keys(days)
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
 export function adToBs(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   if (!y || !m || !d) return null;
@@ -81,6 +91,6 @@ export function pad(n: number) {
 }
 
 export function todayIso() {
-  const n = new Date();
-  return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`;
+  const now = new Date();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }

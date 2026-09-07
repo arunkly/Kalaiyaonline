@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
-import { isHeadline } from "@/data/articles";
+import { isHeadline, toNpDigits } from "@/data/articles";
 import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
@@ -29,104 +29,94 @@ function Home() {
   const all = [...edition].sort((a, b) => (a.date < b.date ? 1 : -1));
   const hero = all.find((a) => isHeadline(a.category));
   const rest = all.filter((a) => a.slug !== hero?.slug);
-  const side = rest.slice(0, 5);
-  const grid = rest.slice(5, 11);
-  const more = rest.slice(11);
+  const side = rest.slice(0, 6);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <AdSlot slot="home-top" />
-      <div className="grid gap-8 lg:grid-cols-12">
-        {hero ? (
-          <div className="lg:col-span-8">
-            <ArticleCard article={hero} variant="hero" />
-          </div>
-        ) : (
-          <div className="lg:col-span-8 rounded-2xl border border-dashed border-line-strong bg-surface px-5 py-20 text-center">
-            <p className="font-display text-3xl">हेडलाइन छैन</p>
-            <p className="mt-2 text-sm text-muted">
-              ब्यानरका लागि विभाग <span className="font-semibold text-crimson">हेडलाइन</span> मा समाचार
-              प्रकाशन गर्नुहोस्।
-            </p>
-          </div>
-        )}
-        <aside className="rounded-2xl border border-line bg-surface px-4 py-3 lg:col-span-4">
-          <p className="section-title">ताजा शीर्षक</p>
-          {side.length ? (
-            side.map((a, i) => (
-              <ArticleCard key={a.slug} article={a} variant="compact" rank={i + 1} />
-            ))
-          ) : (
-            <p className="py-6 text-sm text-muted">नयाँ शीर्षक आउनेछ।</p>
-          )}
-        </aside>
-      </div>
 
-      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {grid.map((a) => (
-          <ArticleCard key={a.slug} article={a} />
-        ))}
-      </section>
+      {hero ? (
+        <ArticleCard article={hero} variant="hero" />
+      ) : (
+        <div className="rounded-[1.75rem] border border-dashed border-[#b3c7ba] bg-white px-5 py-16 text-center">
+          <p className="font-display text-3xl">हेडलाइन छैन</p>
+        </div>
+      )}
 
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid gap-6 lg:grid-cols-12">
         <section className="lg:col-span-8">
-          <p className="section-title">थप समाचार</p>
-          {more.map((a) => (
-            <ArticleCard key={a.slug} article={a} variant="text" />
-          ))}
-        </section>
-        <aside className="space-y-6 lg:col-span-4">
-          <AdSlot slot="home-sidebar" />
-          <div className="rounded-2xl border border-line bg-surface p-4">
-            <p className="section-title">ग्यालरी झलक</p>
-            {albums.length ? (
-              <ul className="mt-3 space-y-2">
-                {albums.slice(0, 5).map((g) => {
-                  const thumb = g.coverUrl || g.photos[0]?.imageUrl;
-                  return (
-                    <li key={g.slug}>
-                      <Link
-                        to="/gallery/$slug"
-                        params={{ slug: g.slug }}
-                        className="flex items-center gap-3 rounded-xl px-1 py-1 hover:bg-chip"
-                      >
-                        {thumb ? (
-                          <img src={thumb} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-                        ) : (
-                          <span className="grid size-14 place-items-center rounded-lg bg-chip text-xs">फोटो</span>
-                        )}
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{g.title}</p>
-                          <p className="text-xs text-muted">{g.place}</p>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="mt-3 text-sm text-muted">ग्यालरी खाली छ।</p>
-            )}
+          <p className="mb-4 font-display text-2xl">आजको डेस्क</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {rest.slice(0, 6).map((a) => (
+              <ArticleCard key={a.slug} article={a} />
+            ))}
           </div>
-          <div className="rounded-2xl border border-line bg-surface p-4">
-            <p className="section-title">डाइरेक्ट्री</p>
-            {places.length ? (
-              <ul className="mt-3 grid gap-3">
-                {places.slice(0, 4).map((d) => (
-                  <li key={d.id}>
-                    <DirectoryListing
-                      item={d}
-                      categoryLabel={dirCats.find((c) => c.slug === d.category)?.label}
-                    />
-                  </li>
-                ))}
-              </ul>
+        </section>
+        <aside className="rounded-[1.5rem] border border-line bg-white p-4 lg:col-span-4">
+          <p className="text-sm font-bold tracking-[0.12em] text-[#14934e]">ताजा शीर्षक</p>
+          <div className="mt-2 divide-y divide-line">
+            {side.length ? (
+              side.map((a, i) => (
+                <Link key={a.slug} to="/article/$slug" params={{ slug: a.slug }} className="flex gap-3 py-3">
+                  <span className="w-8 font-display text-2xl font-semibold text-[#ff6f00]">{toNpDigits(i + 1)}</span>
+                  <p className="line-clamp-3 font-display text-xl leading-snug text-ink">{a.titleNp || a.title}</p>
+                </Link>
+              ))
             ) : (
-              <p className="mt-3 text-sm text-muted">डाइरेक्ट्री खाली छ।</p>
+              <p className="py-6 text-sm text-muted">नयाँ शीर्षक आउनेछ।</p>
             )}
           </div>
         </aside>
       </div>
+
+      {rest.slice(6).length ? (
+        <section>
+          <p className="mb-4 font-display text-2xl">थप समाचार</p>
+          <div className="space-y-2 rounded-[1.5rem] bg-white p-2">
+            {rest.slice(6).map((a) => (
+              <ArticleCard key={a.slug} article={a} variant="text" />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-[1.5rem] bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-display text-2xl">ग्यालरी</p>
+            <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">
+              सबै
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {albums.slice(0, 8).map((g) => {
+              const thumb = g.coverUrl || g.photos[0]?.imageUrl;
+              return (
+                <Link key={g.slug} to="/gallery/$slug" params={{ slug: g.slug }} className="w-36 shrink-0">
+                  {thumb ? <img src={thumb} alt="" className="h-24 w-36 rounded-xl object-cover" /> : <div className="h-24 rounded-xl bg-chip" />}
+                  <p className="mt-2 line-clamp-2 text-sm">{g.title}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+        <section className="rounded-[1.5rem] bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-display text-2xl">डाइरेक्ट्री</p>
+            <Link to="/directory" className="text-sm font-semibold text-[#14934e]">
+              सबै
+            </Link>
+          </div>
+          <ul className="space-y-2">
+            {places.slice(0, 4).map((d) => (
+              <li key={d.id}>
+                <DirectoryListing item={d} compact categoryLabel={dirCats.find((c) => c.slug === d.category)?.label} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+      <AdSlot slot="home-sidebar" />
     </div>
   );
 }

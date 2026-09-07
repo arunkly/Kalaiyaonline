@@ -110,7 +110,7 @@
   .ticker-track {
     display: flex;
     width: max-content;
-    animation: ticker-scroll 48s linear infinite;
+    animation: ticker-scroll 140s linear infinite;
   }
 
   .ticker-track:hover {
@@ -119,6 +119,24 @@
 
   .notice-bell-live {
     animation: notice-pulse 1.6s ease-out infinite;
+  }
+
+  .mithila-band {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .mithila-band::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 10px;
+    background-image:
+      radial-gradient(circle at 6px 5px, #ffd27a 1.6px, transparent 1.8px),
+      radial-gradient(circle at 18px 5px, #8dffb0 1.4px, transparent 1.6px);
+    background-size: 24px 10px;
+    opacity: 0.9;
   }
 
   .wa-shell {

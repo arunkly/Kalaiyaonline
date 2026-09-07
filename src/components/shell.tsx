@@ -21,6 +21,9 @@ import { useCategories } from "@/lib/use-categories";
 
 const NAV = [
   { to: "/", label: "गृह", icon: Home },
+] as const;
+
+const MORE_NAV = [
   { to: "/gallery", label: "ग्यालरी", icon: Camera },
   { to: "/directory", label: "डाइरेक्ट्री", icon: Building2 },
   { to: "/blood", label: "रक्तदाता", icon: Droplet },
@@ -55,28 +58,15 @@ export function Shell({ children }: { children: ReactNode }) {
         समाचारमा जानुहोस्
       </a>
 
-      <div className="bg-crimson text-paper">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-[11px] font-medium sm:px-6">
-          <p className="truncate tracking-wide">कलैया · बारा · मधेश — स्वतन्त्र स्थानीय समाचार</p>
-          <span className="hidden shrink-0 rounded-full bg-mark px-2.5 py-0.5 text-[10px] font-semibold tracking-wider text-paper sm:inline">
-            LIVE
-          </span>
-        </div>
-      </div>
-
-      <header className="sticky top-0 z-30 border-b border-line/80 bg-paper/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6 sm:py-3.5">
-          <Link to="/" className="min-w-0 flex-1">
-            <img
-              src="/logo.jpg"
-              alt="KalaiyaOnline.com"
-              className="h-8 w-auto drop-shadow-sm sm:h-11 md:h-12"
-            />
+      <header className="sticky top-0 z-30 border-b border-line bg-white shadow-sm">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-3 py-2 sm:px-4">
+          <Link to="/" className="shrink-0">
+            <img src="/logo.jpg" alt="KalaiyaOnline.com" className="h-8 w-auto sm:h-10" />
           </Link>
 
           <form
             action="/search"
-            className="hidden min-w-0 flex-[1.2] items-center gap-2 md:flex"
+            className="hidden min-w-0 flex-1 items-center md:flex"
             onSubmit={(e) => {
               e.preventDefault();
               if (q.trim()) {
@@ -87,21 +77,42 @@ export function Shell({ children }: { children: ReactNode }) {
             <label className="sr-only" htmlFor="desk-search">
               खोज
             </label>
-            <div className="flex w-full items-center gap-2 rounded-full border border-line bg-surface px-4 py-2.5 shadow-sm">
+            <div className="flex w-full max-w-md items-center gap-2 rounded-full bg-[#f0f2f5] px-4 py-2">
               <Search className="size-4 shrink-0 text-muted" />
               <input
                 id="desk-search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="समाचार खोज्नुहोस्"
+                placeholder="KalaiyaOnline खोज्नुहोस्"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
               />
             </div>
           </form>
 
+          <nav className="hidden flex-1 justify-center gap-1 lg:flex">
+            {([...NAV, ...MORE_NAV] as const).map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  title={item.label}
+                  className={cn(
+                    "grid h-12 w-16 place-items-center rounded-lg",
+                    active ? "text-crimson" : "text-muted hover:bg-chip",
+                  )}
+                >
+                  <Icon className="size-6" strokeWidth={active ? 2.4 : 1.8} />
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-2">
           <Link
             to="/search"
-            className="inline-flex size-11 items-center justify-center rounded-full border border-line bg-surface shadow-sm md:hidden"
+            className="inline-flex size-10 items-center justify-center rounded-full bg-chip md:hidden"
             aria-label="खोज"
           >
             <Search className="size-5" />
@@ -110,53 +121,16 @@ export function Shell({ children }: { children: ReactNode }) {
           <AccountMenu />
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-full border border-line bg-surface shadow-sm lg:hidden"
+            className="inline-flex size-10 items-center justify-center rounded-full bg-chip lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-label="मेनु"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
-        </div>
-
-        <div className="h-0.5 bg-gradient-to-r from-crimson via-mark to-crimson" />
-        <MarketTicker />
-        <AdSlot slot="header" className="mx-auto max-w-6xl px-4 py-2 sm:px-6" />
-
-        <nav className="hidden lg:block">
-          <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4 sm:px-6">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "shrink-0 border-b-2 px-3 py-3 text-sm font-semibold",
-                  pathname === item.to
-                    ? "border-crimson text-crimson"
-                    : "border-transparent text-ink-soft hover:text-crimson",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <span className="mx-2 h-4 w-px bg-line" />
-            {cats.map((c) => (
-              <Link
-                key={c.slug}
-                to="/category/$slug"
-                params={{ slug: c.slug }}
-                className={cn(
-                  "shrink-0 border-b-2 px-3 py-3 text-sm",
-                  pathname === `/category/${c.slug}`
-                    ? "border-mark font-semibold text-crimson"
-                    : "border-transparent text-muted hover:text-ink",
-                )}
-              >
-                {c.label}
-              </Link>
-            ))}
           </div>
-        </nav>
+        </div>
+        <MarketTicker />
       </header>
 
       {open ? (
@@ -197,7 +171,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       ) : null}
 
-      <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:pb-14">
+      <main id="main" className="mx-auto w-full max-w-[1180px] px-3 pb-24 pt-4 sm:px-4 sm:pt-5 lg:pb-10">
         {children}
       </main>
       <AdSlot slot="footer" className="mx-auto max-w-6xl px-4 py-4 sm:px-6" />
@@ -207,7 +181,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="mx-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] rounded-2xl border border-line bg-white/95 shadow-[0_-8px_30px_rgb(16_38_26/0.12)] backdrop-blur-md">
           <div className="h-1 rounded-t-2xl bg-gradient-to-r from-crimson via-mark to-crimson" />
           <div className="grid grid-cols-6 px-1 py-1">
-          {NAV.map((item) => {
+          {([...NAV, ...MORE_NAV] as const).map((item) => {
             const Icon = item.icon;
             const active = pathname === item.to;
             return (
@@ -262,6 +236,20 @@ export function Shell({ children }: { children: ReactNode }) {
             className="block rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip"
           >
             मिति कन्भर्टर
+          </Link>
+          <Link
+            to="/market"
+            onClick={() => setFooterOpen(false)}
+            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
+          >
+            सेयर बजार
+          </Link>
+          <Link
+            to="/patro"
+            onClick={() => setFooterOpen(false)}
+            className="block rounded-xl px-3 py-3 text-sm hover:bg-chip"
+          >
+            पात्रो
           </Link>
           <Link
             to="/blood"

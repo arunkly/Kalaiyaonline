@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { CHAT_WARN, findBadWord } from "@/lib/chat-filter";
 
 export type SocialUser = {
   id: string;
@@ -157,10 +158,31 @@ export const sendMessage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
+    if (findBadWord(data.body)) {
+      await sql`
+        insert into chat_warnings (user_id, body)
+        values (${context.userId}, ${data.body.trim().slice(0, 400)})
+      `;
+      throw new Error(CHAT_WARN);
+    }
     const rows = await sql<ChatMessage>`
       insert into chat_messages (from_id, to_id, body)
       values (${context.userId}, ${data.peerId}, ${data.body.trim()})
       returning id, from_id as "fromId", to_id as "toId", body, created_at as "createdAt"
     `;
     return rows[0];
+  });
+
+export const clearChat = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ peerId: z.string().min(1).max(80) }))
+  .handler(async ({ data, context }) => {
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    await sql`
+      delete from chat_messages
+      where (from_id = ${context.userId} and to_id = ${data.peerId})
+         or (from_id = ${data.peerId} and to_id = ${context.userId})
+    `;
+    return { ok: true };
   });

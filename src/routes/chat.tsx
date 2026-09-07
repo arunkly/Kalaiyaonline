@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, CheckCheck, MoreVertical, Search, Send, Smile } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CHAT_WARN, findBadWord } from "@/lib/chat-filter";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
@@ -8,6 +9,7 @@ import {
   listFriends,
   listMembers,
   listMessages,
+  clearChat,
   requestFriend,
   sendMessage,
   type ChatMessage,
@@ -41,6 +43,11 @@ function ChatPage() {
   const [peer, setPeer] = useState<FriendRow | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
+  const [warn, setWarn] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [cleared, setCleared] = useState(false);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"chats" | "people">("chats");
   const scroller = useRef<HTMLDivElement>(null);
@@ -57,10 +64,12 @@ function ChatPage() {
 
   useEffect(() => {
     if (!peer) return;
+    setMenuOpen(false);
+    setConfirmClear(false);
     void listMessages({ data: { peerId: peer.id } }).then(setMessages);
     const id = window.setInterval(() => {
       void listMessages({ data: { peerId: peer.id } }).then(setMessages);
-    }, 4000);
+    }, 2500);
     return () => window.clearInterval(id);
   }, [peer]);
 
@@ -174,7 +183,7 @@ function ChatPage() {
           </div>
         </aside>
 
-        <section className={`flex min-h-[72dvh] flex-col lg:col-span-8 ${peer ? "flex" : "hidden lg:flex"}`}>
+        <section className={`relative flex min-h-[72dvh] flex-col lg:col-span-8 ${peer ? "flex" : "hidden lg:flex"}`}>
           {peer ? (
             <>
               <header className="flex items-center gap-3 bg-[#148a4c] px-3 py-2 text-white">
@@ -185,6 +194,31 @@ function ChatPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{peer.name}</p>
                   <p className="text-xs text-white/80">अनलाइन</p>
+                </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="grid size-10 place-items-center rounded-full hover:bg-white/15"
+                    aria-label="थप"
+                    onClick={() => setMenuOpen((v) => !v)}
+                  >
+                    <MoreVertical className="size-5" />
+                  </button>
+                  {menuOpen ? (
+                    <div className="absolute right-0 top-11 z-20 w-44 overflow-hidden rounded-xl bg-white py-1 text-[#111b21] shadow-lg">
+                      <button
+                        type="button"
+                        disabled={!messages.length}
+                        className="block w-full px-4 py-2.5 text-left text-sm hover:bg-[#f0f2f5] disabled:opacity-40"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setConfirmClear(true);
+                        }}
+                      >
+                        च्याट क्लियर
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </header>
               <div ref={scroller} className="wa-shell min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -201,35 +235,91 @@ function ChatPage() {
                   );
                 })}
               </div>
+              {cleared ? (
+                <p className="bg-[#f0f2f5] py-1 text-center text-xs text-[#148a4c]">च्याट क्लियर भयो</p>
+              ) : null}
               <form
-                className="flex items-center gap-2 bg-[#f0f2f5] px-2 py-2"
+                className="bg-[#f0f2f5] px-2 py-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const body = text.trim();
                   if (!body) return;
-                  void sendMessage({ data: { peerId: peer.id, body } }).then((row) => {
-                    if (row) setMessages((list) => [...list, row]);
-                    setText("");
-                  });
+                  if (findBadWord(body)) {
+                    setWarn(CHAT_WARN);
+                    return;
+                  }
+                  void sendMessage({ data: { peerId: peer.id, body } })
+                    .then((row) => {
+                      if (row) setMessages((list) => [...list, row]);
+                      setText("");
+                      setWarn(null);
+                    })
+                    .catch((err) => {
+                      setWarn(err instanceof Error ? err.message : CHAT_WARN);
+                    });
                 }}
               >
-                <span className="grid size-10 place-items-center text-[#54656f]">
-                  <Smile className="size-6" />
-                </span>
-                <input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="सन्देश"
-                  className="min-h-11 flex-1 rounded-lg bg-white px-3 text-[15px] outline-none"
-                />
-                <button
-                  type="submit"
-                  className="grid size-11 place-items-center rounded-full bg-[#148a4c] text-white"
-                  aria-label="पठाउनुहोस्"
-                >
-                  <Send className="size-5" />
-                </button>
+                {warn ? (
+                  <p className="mb-2 rounded-xl bg-[#fff3cd] px-3 py-2 text-sm font-semibold text-[#7a4b00]">
+                    {warn}
+                  </p>
+                ) : null}
+                <div className="flex items-center gap-2">
+                  <span className="grid size-10 place-items-center text-[#54656f]">
+                    <Smile className="size-6" />
+                  </span>
+                  <input
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="सन्देश"
+                    className="min-h-11 flex-1 rounded-lg bg-white px-3 text-[15px] outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="grid size-11 place-items-center rounded-full bg-[#148a4c] text-white"
+                    aria-label="पठाउनुहोस्"
+                  >
+                    <Send className="size-5" />
+                  </button>
+                </div>
               </form>
+              {confirmClear ? (
+                <div className="absolute inset-0 z-30 grid place-items-center bg-black/40 p-4">
+                  <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-[#111b21] shadow-xl">
+                    <p className="font-display text-xl">च्याट क्लियर गर्ने?</p>
+                    <p className="mt-2 text-sm text-[#667781]">
+                      {peer.name} सँगको सबै सन्देश मेटिन्छ। यो फेरि फिर्ता हुँदैन।
+                    </p>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        className="rounded-full px-4 py-2 text-sm"
+                        onClick={() => setConfirmClear(false)}
+                      >
+                        रद्द
+                      </button>
+                      <button
+                        type="button"
+                        disabled={clearing}
+                        className="rounded-full bg-[#e11d48] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                        onClick={() => {
+                          setClearing(true);
+                          void clearChat({ data: { peerId: peer.id } })
+                            .then(() => {
+                              setMessages([]);
+                              setConfirmClear(false);
+                              setCleared(true);
+                              window.setTimeout(() => setCleared(false), 2500);
+                            })
+                            .finally(() => setClearing(false));
+                        }}
+                      >
+                        {clearing ? "क्लियर हुँदै…" : "क्लियर गर्नुहोस्"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </>
           ) : (
             <div className="hidden flex-1 items-center justify-center bg-[#f0f2f5] text-center lg:flex">

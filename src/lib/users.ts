@@ -23,7 +23,7 @@ export const listPublicMembers = createServerFn({ method: "GET" }).handler(async
   const { getSql } = await import("@/lib/db");
   const sql = await getSql();
   const users = await sql<{ id: string; name: string | null }>`
-    select id, name from "user" order by "createdAt" desc limit 24
+    select id, name from "user" order by "createdAt" desc limit 200
   `;
   const profiles = await sql<{ userId: string; displayName: string; photoUrl: string; status: string }>`
     select user_id as "userId", display_name as "displayName", photo_url as "photoUrl", status
@@ -128,4 +128,29 @@ export const deleteAppUser = createServerFn({ method: "POST" })
     await sql`delete from "account" where "userId" = ${data.userId}`;
     await sql`delete from "user" where id = ${data.userId}`;
     return { ok: true };
+  });
+
+export type ChatWarning = {
+  id: number;
+  userId: string;
+  name: string;
+  email: string;
+  body: string;
+  createdAt: string;
+};
+
+export const listChatWarnings = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    return sql<ChatWarning>`
+      select w.id, w.user_id as "userId", coalesce(u.name, 'सदस्य') as name,
+             coalesce(u.email, '') as email, w.body, w.created_at as "createdAt"
+      from chat_warnings w
+      left join "user" u on u.id = w.user_id
+      order by w.created_at desc
+      limit 100
+    `;
   });
