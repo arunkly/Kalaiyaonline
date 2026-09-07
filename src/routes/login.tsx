@@ -5,6 +5,7 @@ import { authClient, authEnabled } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
 import { ensureAdminReady } from "@/lib/desk";
+import { sendWelcomeMail } from "@/lib/mail";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -48,6 +49,9 @@ function Login() {
           setError(created.error.message || "सदस्य बन्न सकिएन।");
           return;
         }
+        void sendWelcomeMail({
+          data: { email, name: name.trim() || email.split("@")[0] },
+        }).catch(() => undefined);
       } else {
         const result = await authClient.signIn.email({ email, password });
         if (result.error) {
@@ -146,7 +150,7 @@ function Login() {
             {busy
               ? mode === "up"
                 ? "खाता बन्दै…"
-                : "लगइन हुँदै…"
+                : "लगइन हुࠖदै…"
               : mode === "up"
                 ? "सदस्य बन्नुहोस्"
                 : "लगइन"}
