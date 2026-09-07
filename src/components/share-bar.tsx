@@ -42,23 +42,22 @@ export function ShareBar({
   }
 
   return (
-    <div className="mt-8 rounded-2xl border border-line bg-surface p-4">
+    <div className="mt-8 text-center">
       <p className="text-[11px] font-bold tracking-[0.18em] text-muted">सेयर गर्नुहोस्</p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
         <a
           href={`https://www.facebook.com/sharer/sharer.php?u=${encoded}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#1877F2] px-4 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+          className="inline-flex h-8 items-center gap-1 rounded-full bg-[#1877F2] px-2.5 text-[11px] font-semibold text-white"
         >
-          <span className="text-base leading-none">f</span>
-          Facebook
+          f Facebook
         </a>
         <a
           href={`https://twitter.com/intent/tweet?url=${encoded}&text=${text}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#111111] px-4 text-sm font-semibold text-white shadow-sm hover:brightness-125"
+          className="inline-flex h-8 items-center rounded-full bg-[#111111] px-2.5 text-[11px] font-semibold text-white"
         >
           𝕏
         </a>
@@ -66,7 +65,7 @@ export function ShareBar({
           href={`https://api.whatsapp.com/send?text=${text}%20${encoded}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+          className="inline-flex h-8 items-center rounded-full bg-[#25D366] px-2.5 text-[11px] font-semibold text-white"
         >
           WhatsApp
         </a>
@@ -74,19 +73,19 @@ export function ShareBar({
           type="button"
           onClick={() => void copy()}
           className={cn(
-            "inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-sm",
-            copied ? "bg-crimson text-paper" : "border border-line bg-paper text-ink hover:border-crimson",
+            "inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold",
+            copied ? "bg-crimson text-paper" : "border border-line bg-paper text-ink",
           )}
         >
-          {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
-          {copied ? "कपी भयो" : "लिंक कपी"}
+          {copied ? <Check className="size-3" /> : <Link2 className="size-3" />}
+          {copied ? "कपी" : "लिंक"}
         </button>
         <button
           type="button"
           onClick={() => void nativeShare()}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-mark px-4 text-sm font-semibold text-paper shadow-sm hover:brightness-110"
+          className="inline-flex h-8 items-center gap-1 rounded-full bg-mark px-2.5 text-[11px] font-semibold text-paper"
         >
-          <Share2 className="size-4" />
+          <Share2 className="size-3" />
           सेयर
         </button>
       </div>
