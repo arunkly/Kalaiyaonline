@@ -93,84 +93,104 @@ function ArticlePage() {
   const paragraphs = article.body.length ? article.body : [article.excerpt];
 
   return (
-    <article className="mx-auto max-w-3xl">
+    <article className="pb-6">
       <AdSlot slot="article-top" className="mb-6" />
-      {article.imageUrl ? (
-        <figure className="-mx-4 overflow-hidden sm:mx-0 sm:rounded-3xl sm:border sm:border-line">
-          <img src={article.imageUrl} alt={title} className="max-h-[32rem] w-full object-cover" />
-        </figure>
-      ) : null}
 
-      <div className="mt-6">
-        <p className="kicker">
-          {categoryLabel(cats, article.category)} · {article.location}
-        </p>
-        <h1 className="mt-3 font-display text-3xl font-normal leading-snug tracking-tight sm:text-4xl">
-          {title}
-        </h1>
+      <div className="overflow-hidden rounded-[1.75rem] bg-[#10261a] text-white">
+        {article.imageUrl ? (
+          <div className="relative min-h-64 sm:min-h-[22rem]">
+            <img src={article.imageUrl} alt={title} className="absolute inset-0 size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#10261a] via-[#10261a]/55 to-transparent" />
+            <div className="relative flex min-h-64 flex-col justify-end p-5 sm:min-h-[22rem] sm:p-8">
+              <p className="w-fit rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold tracking-wide">
+                {categoryLabel(cats, article.category)}
+              </p>
+              <h1 className="mt-3 max-w-4xl font-display text-3xl leading-tight sm:text-5xl">{title}</h1>
+              <p className="mt-3 text-sm text-white/75">
+                {article.location} · {article.author} · {formatDate(article.date)}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 sm:p-8">
+            <p className="w-fit rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold">
+              {categoryLabel(cats, article.category)}
+            </p>
+            <h1 className="mt-3 font-display text-3xl leading-tight sm:text-5xl">{title}</h1>
+          </div>
+        )}
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-muted">
-        <p className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-ink">{article.author}</span>
-          <span>· {formatDate(article.date)}</span>
-          <span className="inline-flex items-center gap-1 text-crimson">
+      <div className="mx-auto mt-5 max-w-3xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-muted shadow-sm">
+          <p className="inline-flex items-center gap-1 font-semibold text-[#14934e]">
             <Eye className="size-4" />
             {toNpDigits(views)} पटक हेरियो
-          </span>
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <TextResizer />
-          <button
-            type="button"
-            onClick={() => toggleSaved(article.slug)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-3 text-sm font-medium text-ink hover:border-crimson"
-          >
-            {saved ? <BookmarkCheck className="size-4 text-crimson" /> : <Bookmark className="size-4" />}
-            {saved ? "सुरक्षित छ" : "सेभ गर्नुहोस्"}
-          </button>
-        </div>
-      </div>
-
-      <div
-        className="article-body mt-10 space-y-6 font-display font-medium leading-[1.8] text-ink"
-        style={{ fontSize: `${1.2 * textScale}rem` }}
-      >
-        {paragraphs.map((p, i) => (
-          <p key={`${i}-${p.slice(0, 16)}`} className={i === 0 ? "first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-6xl first-letter:font-bold first-letter:text-crimson" : ""}>
-            {p}
           </p>
-        ))}
-      </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <TextResizer />
+            <button
+              type="button"
+              onClick={() => toggleSaved(article.slug)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-3 text-sm font-medium hover:border-crimson"
+            >
+              {saved ? <BookmarkCheck className="size-4 text-crimson" /> : <Bookmark className="size-4" />}
+              {saved ? "सुरक्षित छ" : "सेभ गर्नुहोस्"}
+            </button>
+          </div>
+        </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
-        {article.tags.map((tag) => (
-          <Link
-            key={tag}
-            to="/search"
-            search={{ q: tag }}
-            className="rounded-full border border-line bg-chip px-3 py-1 text-xs font-medium hover:border-crimson"
-          >
-            {tag}
-          </Link>
-        ))}
-      </div>
-
-      <ShareBar path={`/article/${article.slug}`} title={title} />
-      <AdSlot slot="article-bottom" className="mt-6" />
-      <StoryEngage slug={article.slug} />
-      <div className="mt-8">
-        <MembersWidget />
-      </div>
-
-      {related.length ? (
-        <section className="mt-12">
-          <h2 className="section-title">सम्बन्धित</h2>
-          {related.map((a) => (
-            <ArticleCard key={a.slug} article={a} variant="text" />
+        <div
+          className="article-body mt-8 space-y-6 font-display leading-[1.9] text-ink"
+          style={{ fontSize: `${1.15 * textScale}rem` }}
+        >
+          {paragraphs.map((p, i) => (
+            <p
+              key={`${i}-${p.slice(0, 16)}`}
+              className={
+                i === 0
+                  ? "rounded-2xl bg-[#f3f7f4] px-5 py-4 text-ink-soft first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-6xl first-letter:font-bold first-letter:text-[#14934e]"
+                  : ""
+              }
+            >
+              {p}
+            </p>
           ))}
-        </section>
-      ) : null}
+        </div>
+
+        {article.tags.length ? (
+          <div className="mt-8 flex flex-wrap gap-2">
+            {article.tags.map((tag) => (
+              <Link
+                key={tag}
+                to="/search"
+                search={{ q: tag }}
+                className="rounded-full bg-[#e7f4eb] px-3 py-1 text-xs font-semibold text-[#0b6b38] hover:bg-[#14934e] hover:text-white"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
+        <ShareBar path={`/article/${article.slug}`} title={title} />
+        <AdSlot slot="article-bottom" className="mt-6" />
+        <StoryEngage slug={article.slug} />
+        <div className="mt-8">
+          <MembersWidget />
+        </div>
+
+        {related.length ? (
+          <section className="mt-12">
+            <h2 className="mb-4 font-display text-2xl">सम्बन्धित समाचार</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {related.map((a) => (
+                <ArticleCard key={a.slug} article={a} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+      </div>
     </article>
   );
 }
