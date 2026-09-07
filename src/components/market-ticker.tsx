@@ -2,12 +2,15 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getNepseTicker, type NepseTicker } from "@/lib/nepse";
 import { cn } from "@/lib/cn";
+import { toNpDigits } from "@/data/articles";
 
 function fmt(n: number, digits = 2) {
-  return n.toLocaleString("en-NP", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  return toNpDigits(
+    n.toLocaleString("en-NP", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }),
+  );
 }
 
 function Chip({
@@ -21,10 +24,10 @@ function Chip({
 }) {
   const up = percent >= 0;
   return (
-    <span className="mx-1 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm">
-      <span className="font-semibold">{label}</span>
+    <span className="mx-1 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white">
+      <span className="font-semibold text-[#7dcc7a]">{label}</span>
       {value ? <span className="tabular-nums text-white/90">{value}</span> : null}
-      <span className={cn("tabular-nums text-xs font-semibold", up ? "text-[#8dffb0]" : "text-[#ffb4a2]")}>
+      <span className={cn("tabular-nums text-xs font-semibold", up ? "text-[#7dcc7a]" : "text-[#E87722]")}>
         {up ? "▲" : "▼"} {fmt(Math.abs(percent))}%
       </span>
     </span>
@@ -53,8 +56,8 @@ export function MarketTicker() {
 
   if (!data) {
     return (
-      <div className="border-b border-[#0c3a24] bg-[#123524] px-4 py-2 text-sm text-white/70">
-        NEPSE टिकर लोड हुँदै…
+      <div className="border-b border-[#2E7D32]/30 bg-[#111111] px-4 py-2 text-sm text-white/70">
+        NEPSE टिकर लोड हुࠖदै…
       </div>
     );
   }
@@ -67,13 +70,13 @@ export function MarketTicker() {
   ];
 
   return (
-    <div className="border-b border-[#0c3a24] bg-[#123524] text-white">
+    <div className="border-b border-[#2E7D32]/30 bg-[#111111] text-white">
       <div className="mx-auto flex max-w-6xl items-stretch">
         <Link
           to="/market"
-          className="flex shrink-0 items-center gap-2 bg-[#14934e] px-3 py-2 text-[11px] font-semibold"
+          className="flex shrink-0 items-center gap-2 bg-[#2E7D32] px-3 py-2 text-[11px] font-semibold text-white"
         >
-          <span className="size-1.5 rounded-full bg-white" />
+          <span className="size-1.5 rounded-full bg-[#E87722]" />
           सेयर बजार
         </Link>
         <div className="ticker-mask min-w-0 flex-1 overflow-hidden">
