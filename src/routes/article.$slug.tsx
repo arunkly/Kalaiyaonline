@@ -11,7 +11,7 @@ import { displayTitle, formatDate, toNpDigits } from "@/data/articles";
 import { getPublishedStory } from "@/lib/desk";
 import { useEdition, useEditionArticle } from "@/lib/edition";
 import { usePrefs } from "@/lib/prefs";
-import { absoluteUrl, siteOrigin } from "@/lib/site-url";
+import { absoluteUrl } from "@/lib/site-url";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { incrementView } from "@/lib/views";
 
@@ -19,10 +19,10 @@ export const Route = createFileRoute("/article/$slug")({
   loader: ({ params }) => getPublishedStory({ data: { slug: params.slug } }),
   head: ({ loaderData }) => {
     const story = loaderData;
-    const origin = siteOrigin();
+    const origin = "https://www.kalaiyaonline.com";
     const title = story?.title ? `${story.title} | KalaiyaOnline` : "KalaiyaOnline";
     const desc = story?.excerpt || "कलैया, बारा र मधेशको स्थानीय समाचार।";
-    const image = absoluteUrl(story?.imageUrl || "/og.jpg", origin);
+    const image = absoluteUrl(story?.imageUrl || "/og.jpg", origin).replace(/^http:\/\//, "https://");
     const url = `${origin}/article/${story?.slug ?? ""}`;
     return {
       meta: [
@@ -35,12 +35,16 @@ export const Route = createFileRoute("/article/$slug")({
         { property: "og:url", content: url },
         { property: "og:image", content: image },
         { property: "og:image:secure_url", content: image },
+        { property: "og:image:type", content: "image/jpeg" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: story?.title || "KalaiyaOnline" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: story?.title || "KalaiyaOnline" },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: image },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: ArticlePage,
@@ -96,70 +100,59 @@ function ArticlePage() {
     <article className="pb-6">
       <AdSlot slot="article-top" className="mb-6" />
 
-      <div className="overflow-hidden rounded-[1.75rem] bg-[#10261a] text-white">
-        {article.imageUrl ? (
-          <div className="relative min-h-64 sm:min-h-[22rem]">
-            <img src={article.imageUrl} alt={title} className="absolute inset-0 size-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#10261a] via-[#10261a]/55 to-transparent" />
-            <div className="relative flex min-h-64 flex-col justify-end p-5 sm:min-h-[22rem] sm:p-8">
-              <p className="w-fit rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold tracking-wide">
-                {categoryLabel(cats, article.category)}
-              </p>
-              <h1 className="mt-3 max-w-4xl font-display text-3xl leading-tight sm:text-5xl">{title}</h1>
-              <p className="mt-3 text-sm text-white/75">
-                {article.location} · {article.author} · {formatDate(article.date)}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="p-6 sm:p-8">
-            <p className="w-fit rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold">
-              {categoryLabel(cats, article.category)}
-            </p>
-            <h1 className="mt-3 font-display text-3xl leading-tight sm:text-5xl">{title}</h1>
-          </div>
-        )}
-      </div>
-
-      <div className="mx-auto mt-5 max-w-3xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-muted shadow-sm">
-          <p className="inline-flex items-center gap-1 font-semibold text-[#14934e]">
+      <header className="mx-auto max-w-3xl text-center">
+        <p className="text-[11px] font-bold tracking-[0.16em] text-[#14934e]">
+          {categoryLabel(cats, article.category)}
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-bold leading-tight sm:text-5xl">{title}</h1>
+        <p className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted">
+          <span>{article.author}</span>
+          <span>·</span>
+          <span>{formatDate(article.date)}</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-[#14934e]">
             <Eye className="size-4" />
             {toNpDigits(views)} पटक हेरियो
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <TextResizer />
-            <button
-              type="button"
-              onClick={() => toggleSaved(article.slug)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-3 text-sm font-medium hover:border-crimson"
-            >
-              {saved ? <BookmarkCheck className="size-4 text-crimson" /> : <Bookmark className="size-4" />}
-              {saved ? "सुरक्षित छ" : "सेभ गर्नुहोस्"}
-            </button>
-          </div>
+          </span>
+        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <TextResizer />
+          <button
+            type="button"
+            onClick={() => toggleSaved(article.slug)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-white px-3 text-sm font-medium hover:border-crimson"
+          >
+            {saved ? <BookmarkCheck className="size-4 text-crimson" /> : <Bookmark className="size-4" />}
+            {saved ? "सुरक्षित छ" : "सेभ गर्नुहोस्"}
+          </button>
         </div>
+      </header>
 
+      {article.imageUrl ? (
+        <figure className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-[1.5rem]">
+          <img src={article.imageUrl} alt={title} className="max-h-[32rem] w-full object-cover" />
+        </figure>
+      ) : null}
+
+      {article.gallery?.length ? (
+        <div className="mx-auto mt-4 grid max-w-4xl gap-3 sm:grid-cols-2">
+          {article.gallery.map((src) => (
+            <img key={src} src={src} alt="" className="h-56 w-full rounded-2xl object-cover" />
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mx-auto mt-8 max-w-3xl">
         <div
-          className="article-body mt-8 space-y-6 font-display leading-[1.9] text-ink"
+          className="article-body space-y-6 font-display leading-[1.9] text-ink"
           style={{ fontSize: `${1.15 * textScale}rem` }}
         >
           {paragraphs.map((p, i) => (
-            <p
-              key={`${i}-${p.slice(0, 16)}`}
-              className={
-                i === 0
-                  ? "rounded-2xl bg-[#f3f7f4] px-5 py-4 text-ink-soft first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-6xl first-letter:font-bold first-letter:text-[#14934e]"
-                  : ""
-              }
-            >
-              {p}
-            </p>
+            <p key={`${i}-${p.slice(0, 16)}`}>{p}</p>
           ))}
         </div>
 
         {article.tags.length ? (
-          <div className="mt-8 flex flex-wrap gap-2">
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
             {article.tags.map((tag) => (
               <Link
                 key={tag}
@@ -182,7 +175,7 @@ function ArticlePage() {
 
         {related.length ? (
           <section className="mt-12">
-            <h2 className="mb-4 font-display text-2xl">सम्बन्धित समाचार</h2>
+            <h2 className="mb-4 text-center font-display text-2xl">सम्बन्धित समाचार</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {related.map((a) => (
                 <ArticleCard key={a.slug} article={a} />
