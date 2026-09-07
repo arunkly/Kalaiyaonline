@@ -12,6 +12,7 @@ export type Article = {
   date: string;
   location: string;
   imageUrl?: string;
+  gallery?: string[];
   featured?: boolean;
   breaking?: boolean;
   sourceUrl: string;
