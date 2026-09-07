@@ -63,7 +63,7 @@ export const saveMailSettings = createServerFn({ method: "POST" })
     z.object({
       fromEmail: z.string().email(),
       fromName: z.string().min(2).max(80),
-      resendKey: z.string().max(200).optional(),
+      resendKey: z.string().max(400).optional(),
     }),
   )
   .handler(async ({ data, context }) => {
