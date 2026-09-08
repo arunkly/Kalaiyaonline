@@ -35,3 +35,19 @@ export const incrementView = createServerFn({ method: "POST" })
     `;
     return { views: Number(rows[0]?.views ?? 0) };
   });
+
+export const listStoryViews = createServerFn({ method: "GET" }).handler(async () => {
+  const { getSql } = await import("@/lib/db");
+  const sql = await getSql();
+  try {
+    const rows = await sql<{ slug: string; views: number }>`
+      select slug, views from desk_stories
+      where deleted_at is null
+      order by views desc
+      limit 30
+    `;
+    return rows.map((r) => ({ slug: r.slug, views: Number(r.views ?? 0) }));
+  } catch {
+    return [];
+  }
+});
