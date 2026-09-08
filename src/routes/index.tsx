@@ -1,10 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
-import { isHeadline, toNpDigits, type Article } from "@/data/articles";
+import { isHeadline, type Article } from "@/data/articles";
 import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
+import { PostSidebar } from "@/components/post-sidebar";
 import { useEdition } from "@/lib/edition";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { useEffect, useMemo, useState } from "react";
@@ -54,8 +55,6 @@ function Home() {
     }))
     .filter((s) => s.items.length);
 
-  const side = pool.slice(0, 6);
-
   return (
     <div className="space-y-8">
       <AdSlot slot="home-top" />
@@ -74,11 +73,7 @@ function Home() {
             <section key={section.slug}>
               <div className="mb-4 flex items-end justify-between gap-3">
                 <p className="font-display text-2xl">{section.label}</p>
-                <Link
-                  to="/category/$slug"
-                  params={{ slug: section.slug }}
-                  className="text-sm font-semibold text-[#14934e]"
-                >
+                <Link to="/category/$slug" params={{ slug: section.slug }} className="text-sm font-semibold text-[#14934e]">
                   सबै
                 </Link>
               </div>
@@ -90,30 +85,16 @@ function Home() {
             </section>
           ))}
         </div>
-        <aside className="rounded-[1.5rem] border border-line bg-white p-4 lg:col-span-4">
-          <p className="text-sm font-bold tracking-[0.12em] text-[#14934e]">ताजा शीर्षक</p>
-          <div className="mt-2 divide-y divide-line">
-            {side.length ? (
-              side.map((a, i) => (
-                <Link key={a.slug} to="/article/$slug" params={{ slug: a.slug }} className="flex gap-3 py-3">
-                  <span className="w-8 font-display text-2xl font-semibold text-[#ff6f00]">{toNpDigits(i + 1)}</span>
-                  <p className="line-clamp-3 font-display text-xl leading-snug text-ink">{a.titleNp || a.title}</p>
-                </Link>
-              ))
-            ) : (
-              <p className="py-6 text-sm text-muted">नयाँ शीर्षक आउनेछ।</p>
-            )}
-          </div>
-        </aside>
+        <div className="lg:col-span-4">
+          <PostSidebar articles={all} limit={10} numbered />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">ग्यालरी</p>
-            <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">
-              सबै
-            </Link>
+            <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">सबै</Link>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1">
             {albums.slice(0, 8).map((g) => {
@@ -130,9 +111,7 @@ function Home() {
         <section className="rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">डाइरेक्ट्री</p>
-            <Link to="/directory" className="text-sm font-semibold text-[#14934e]">
-              सबै
-            </Link>
+            <Link to="/directory" className="text-sm font-semibold text-[#14934e]">सबै</Link>
           </div>
           <ul className="space-y-2">
             {places.slice(0, 4).map((d) => (
