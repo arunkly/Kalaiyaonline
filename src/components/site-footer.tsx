@@ -11,9 +11,11 @@ import {
   MapPin,
   Phone,
   Shield,
+  Type,
   Users,
 } from "lucide-react";
 import type { AboutPage } from "@/lib/about";
+import { toNpDigits } from "@/data/articles";
 
 const FOOTER_LINKS = [
   { to: "/", label: "गृह", icon: Home },
@@ -23,6 +25,8 @@ const FOOTER_LINKS = [
   { to: "/members", label: "दर्ता सदस्य", icon: Users },
   { to: "/market", label: "सेयर बजार", icon: LineChart },
   { to: "/patro", label: "पात्रो", icon: CalendarDays },
+  { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays },
+  { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type },
   { to: "/about", label: "हाम्रोबारे", icon: Info },
   { to: "/privacy", label: "गोपनीयता", icon: Shield },
 ] as const;
@@ -100,7 +104,7 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
       </div>
       <div className="border-t border-white/10 bg-[#0b1a12] px-4 py-4 pb-28 sm:px-6 lg:pb-4">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-center text-xs sm:flex-row sm:text-left">
-          <p className="text-white/45">© {new Date().getFullYear()} {about?.orgName || "KalaiyaOnline"}</p>
+          <p className="text-white/45">© {toNpDigits(new Date().getFullYear())} {about?.orgName || "KalaiyaOnline"}</p>
           <p className="font-medium text-[#ffd27a]">Designed and Developed By : Arun Kumar Sah</p>
         </div>
       </div>
