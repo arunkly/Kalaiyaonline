@@ -25,7 +25,7 @@ export function ContactDeskPanel() {
             <p className="mt-2 text-sm">{m.address}</p>
             <p className="text-sm">
               <a className="text-crimson" href={`mailto:${m.email}`}>{m.email}</a>
-              {" \u00b7 "}
+              {" · "}
               <a className="text-crimson" href={`tel:${m.phone}`}>{m.phone}</a>
             </p>
             <p className="mt-3 whitespace-pre-wrap text-sm">{m.message}</p>
