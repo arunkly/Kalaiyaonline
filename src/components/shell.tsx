@@ -144,20 +144,36 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="border-b border-line bg-surface/95 backdrop-blur-sm lg:hidden">
           <nav className="mx-auto grid max-w-6xl grid-cols-2 gap-1 px-4 py-3 sm:px-6">
             {NAV.map((item) => (
-              <Link key={item.to} to={item.to} className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">
+              <Link
+                key={item.to}
+                to={item.to}
+                className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip"
+              >
                 {item.label}
               </Link>
             ))}
             {cats.map((c) => (
-              <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }} className="rounded-xl px-3 py-3 text-sm text-ink-soft hover:bg-chip">
+              <Link
+                key={c.slug}
+                to="/category/$slug"
+                params={{ slug: c.slug }}
+                className="rounded-xl px-3 py-3 text-sm text-ink-soft hover:bg-chip"
+              >
                 {c.label}
               </Link>
             ))}
-            <Link to="/date-converter" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">मिति कन्भर्टर</Link>
-            <Link to="/preeti" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">प्रीति कन्भर्टर</Link>
-            <Link to="/about" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">हाम्रोबारे</Link>
-            <Link to="/account" className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">मेरो प्रोफाइल</Link>
-            <Link to="/login" className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">लगइन / लगआउट</Link>
+            <Link to="/about" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">
+              हाम्रोबारे
+            </Link>
+            <Link to="/date-converter" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">
+              मिति कन्भर्टर
+            </Link>
+            <Link to="/account" className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">
+              मेरो प्रोफाइल
+            </Link>
+            <Link to="/login" className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">
+              लगइन / लगआउट
+            </Link>
           </nav>
         </div>
       ) : null}
@@ -184,7 +200,12 @@ export function Shell({ children }: { children: ReactNode }) {
                   active ? "text-crimson" : "text-muted",
                 )}
               >
-                <span className={cn("inline-flex size-9 items-center justify-center rounded-full transition", active ? "bg-crimson text-paper shadow-sm" : "bg-transparent")}>
+                <span
+                  className={cn(
+                    "inline-flex size-9 items-center justify-center rounded-full transition",
+                    active ? "bg-crimson text-paper shadow-sm" : "bg-transparent",
+                  )}
+                >
                   <Icon className="size-5" strokeWidth={active ? 2.4 : 1.8} />
                 </span>
                 {item.label}
@@ -194,10 +215,18 @@ export function Shell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={() => setFooterOpen((v) => !v)}
-            className={cn("flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold", footerOpen ? "text-crimson" : "text-muted")}
+            className={cn(
+              "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
+              footerOpen ? "text-crimson" : "text-muted",
+            )}
             aria-label="मेनु"
           >
-            <span className={cn("inline-flex size-9 items-center justify-center rounded-full transition", footerOpen ? "bg-crimson text-paper shadow-sm" : "bg-transparent")}>
+            <span
+              className={cn(
+                "inline-flex size-9 items-center justify-center rounded-full transition",
+                footerOpen ? "bg-crimson text-paper shadow-sm" : "bg-transparent",
+              )}
+            >
               {footerOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </span>
             मेनु
@@ -214,12 +243,18 @@ export function Shell({ children }: { children: ReactNode }) {
               { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type },
               { to: "/market", label: "सेयर बजार", icon: LineChart },
               { to: "/patro", label: "पात्रो", icon: CalendarDays },
+              { to: "/blood", label: "रक्तदाता", icon: Droplet },
               { to: "/about", label: "हाम्रोबारे", icon: Info },
               { to: "/privacy", label: "गोपनीयता", icon: Shield },
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <Link key={item.to} to={item.to} onClick={() => setFooterOpen(false)} className="flex flex-col items-center gap-1 rounded-2xl bg-chip px-2 py-3 text-center text-xs font-semibold">
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setFooterOpen(false)}
+                  className="flex flex-col items-center gap-1 rounded-2xl bg-chip px-2 py-3 text-center text-xs font-semibold"
+                >
                   <Icon className="size-5 text-crimson" />
                   {item.label}
                 </Link>
