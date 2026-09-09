@@ -44,23 +44,23 @@ export function ContactForm() {
           }}
         >
           <label className="block text-sm font-medium">
-            Name :
+            नाम
             <input value={name} onChange={(e) => setName(e.target.value)} required className={field} />
           </label>
           <label className="block text-sm font-medium">
-            Address :
+            ठेगाना
             <input value={address} onChange={(e) => setAddress(e.target.value)} required className={field} />
           </label>
           <label className="block text-sm font-medium">
-            Email :
+            इमेल
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={field} />
           </label>
           <label className="block text-sm font-medium">
-            Contact No :
+            सम्पर्क नम्बर
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className={field} />
           </label>
           <label className="block text-sm font-medium">
-            Message :
+            सन्देश
             <textarea value={message} onChange={(e) => setMessage(e.target.value)} required rows={5} className={field} />
           </label>
           {error ? <p className="text-sm text-mark">{error}</p> : null}
@@ -68,7 +68,7 @@ export function ContactForm() {
             disabled={status === "sending"}
             className="rounded-full bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {status === "sending" ? "पठाउँदै..." : "Send"}
+            {status === "sending" ? "पठाउँदै..." : "पठाउनुहोस्"}
           </button>
         </form>
       )}
