@@ -1,4 +1,5 @@
 import { AdsDeskPanel } from "@/components/admin-ads-desk";
+import { ContactDeskPanel } from "@/components/admin-contact-desk";
 import { BloodDeskPanel } from "@/components/admin-blood-desk";
 import { DirectoryDeskPanel } from "@/components/admin-directory-desk";
 import { GalleryDeskPanel } from "@/components/admin-gallery-desk";
@@ -27,7 +28,7 @@ import {
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads";
+type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact";
 type Tab = "posts" | "categories" | "trash";
 
 const field =
@@ -238,6 +239,7 @@ function AdminPage() {
             ["blood", "रक्तदाता डेस्क"],
             ["users", "प्रयोगकर्ता"],
             ["ads", "विज्ञापन डेस्क"],
+            ["contact", "सम्पर्क सन्देश"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -259,6 +261,7 @@ function AdminPage() {
       {desk === "blood" ? <BloodDeskPanel /> : null}
       {desk === "users" ? <UsersDeskPanel /> : null}
       {desk === "ads" ? <AdsDeskPanel /> : null}
+      {desk === "contact" ? <ContactDeskPanel /> : null}
       {desk === "news" ? (
         <>
       <div className="flex gap-1 overflow-x-auto border-b border-line">
