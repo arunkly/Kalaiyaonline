@@ -73,7 +73,11 @@ function Home() {
             <section key={section.slug}>
               <div className="mb-4 flex items-end justify-between gap-3">
                 <p className="font-display text-2xl">{section.label}</p>
-                <Link to="/category/$slug" params={{ slug: section.slug }} className="text-sm font-semibold text-[#14934e]">
+                <Link
+                  to="/category/$slug"
+                  params={{ slug: section.slug }}
+                  className="text-sm font-semibold text-[#14934e]"
+                >
                   सबै
                 </Link>
               </div>
@@ -90,28 +94,43 @@ function Home() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-[1.5rem] bg-white p-4">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+        <section className="min-w-0 overflow-hidden rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">ग्यालरी</p>
-            <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">सबै</Link>
+            <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">
+              सबै
+            </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {albums.slice(0, 8).map((g) => {
-              const thumb = g.coverUrl || g.photos[0]?.imageUrl;
-              return (
-                <Link key={g.slug} to="/gallery/$slug" params={{ slug: g.slug }} className="w-36 shrink-0">
-                  {thumb ? <img src={thumb} alt="" className="h-24 w-36 rounded-xl object-cover" /> : <div className="h-24 rounded-xl bg-chip" />}
-                  <p className="mt-2 line-clamp-2 text-sm">{g.title}</p>
-                </Link>
-              );
-            })}
+          <div className="-mx-4 overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory touch-pan-x [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max gap-3 px-4 pb-1">
+              {albums.slice(0, 12).map((g) => {
+                const thumb = g.coverUrl || g.photos[0]?.imageUrl;
+                return (
+                  <Link
+                    key={g.slug}
+                    to="/gallery/$slug"
+                    params={{ slug: g.slug }}
+                    className="w-40 shrink-0 snap-start sm:w-36"
+                  >
+                    {thumb ? (
+                      <img src={thumb} alt="" className="h-28 w-full rounded-xl object-cover sm:h-24" />
+                    ) : (
+                      <div className="h-28 rounded-xl bg-chip sm:h-24" />
+                    )}
+                    <p className="mt-2 line-clamp-2 text-sm">{g.title}</p>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </section>
         <section className="rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">डाइरेक्ट्री</p>
-            <Link to="/directory" className="text-sm font-semibold text-[#14934e]">सबै</Link>
+            <Link to="/directory" className="text-sm font-semibold text-[#14934e]">
+              सबै
+            </Link>
           </div>
           <ul className="space-y-2">
             {places.slice(0, 4).map((d) => (
