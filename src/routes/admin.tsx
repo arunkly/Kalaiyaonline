@@ -1,4 +1,5 @@
 import { AdsDeskPanel } from "@/components/admin-ads-desk";
+import { SettingsDeskPanel } from "@/components/admin-settings-desk";
 import { ContactDeskPanel } from "@/components/admin-contact-desk";
 import { BloodDeskPanel } from "@/components/admin-blood-desk";
 import { DirectoryDeskPanel } from "@/components/admin-directory-desk";
@@ -28,7 +29,7 @@ import {
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact";
+type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact" | "settings";
 type Tab = "posts" | "categories" | "trash";
 
 const field =
@@ -52,6 +53,7 @@ function AdminPage() {
   const [location, setLocation] = useState("कलैया, बारा");
   const [tags, setTags] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [gallery, setGallery] = useState<string[]>([""]);
   const [catLabel, setCatLabel] = useState("");
   const [editCatId, setEditCatId] = useState<number | null>(null);
 
@@ -107,7 +109,7 @@ function AdminPage() {
     setBody("");
     setTags("");
     setImageUrl("");
-    setLocation("कलैया, बारा");
+    setGallery([""]);
     setCategory(cats[0]?.slug ?? "local");
   }
 
@@ -121,6 +123,12 @@ function AdminPage() {
     setLocation(s.location);
     setTags(s.tags);
     setImageUrl(s.imageUrl ?? "");
+    try {
+      const extra = s.galleryUrls ? (JSON.parse(s.galleryUrls) as string[]) : [];
+      setGallery(extra.length ? extra : [""]);
+    } catch {
+      setGallery([""]);
+    }
   }
 
   async function onSaveStory(e: React.FormEvent) {
@@ -130,11 +138,11 @@ function AdminPage() {
     try {
       if (editingId) {
         await updateStory({
-          data: { id: editingId, title, excerpt, body, category, location, tags, imageUrl },
+          data: { id: editingId, title, body, category, tags, imageUrl, gallery: gallery.filter((u) => u.trim()) },
         });
       } else {
         await createStory({
-          data: { title, excerpt, body, category, location, tags, imageUrl },
+          data: { title, body, category, tags, imageUrl, gallery: gallery.filter((u) => u.trim()) },
         });
       }
       resetForm();
@@ -240,6 +248,7 @@ function AdminPage() {
             ["users", "प्रयोगकर्ता"],
             ["ads", "विज्ञापन डेस्क"],
             ["contact", "सम्पर्क सन्देश"],
+            ["settings", "सेटिङ"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -262,6 +271,7 @@ function AdminPage() {
       {desk === "users" ? <UsersDeskPanel /> : null}
       {desk === "ads" ? <AdsDeskPanel /> : null}
       {desk === "contact" ? <ContactDeskPanel /> : null}
+      {desk === "settings" ? <SettingsDeskPanel /> : null}
       {desk === "news" ? (
         <>
       <div className="flex gap-1 overflow-x-auto border-b border-line">
@@ -310,40 +320,49 @@ function AdminPage() {
                 className="max-h-48 w-full rounded-md border border-line object-cover"
               />
             ) : null}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium">
-                विभाग
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={field}
-                >
-                  {cats.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm font-medium">
-                स्थान
-                <input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  required
-                  className={field}
-                />
-              </label>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">थप तस्बिरहरू (बाह्य लिंक)</p>
+              {gallery.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="url"
+                    value={url}
+                    placeholder="https://..."
+                    onChange={(e) =>
+                      setGallery((rows) => rows.map((row, idx) => (idx === i ? e.target.value : row)))
+                    }
+                    className={field + " mt-0"}
+                  />
+                  <button
+                    type="button"
+                    className="rounded-xl border border-line px-3 text-sm"
+                    onClick={() => setGallery((rows) => rows.filter((_, idx) => idx !== i))}
+                  >
+                    हटाउनुहोस्
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="text-sm font-semibold text-crimson"
+                onClick={() => setGallery((rows) => [...rows, ""])}
+              >
+                + तस्बिर थप्नुहोस्
+              </button>
             </div>
             <label className="block text-sm font-medium">
-              सारांश
-              <textarea
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                required
-                rows={3}
+              विभाग
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
                 className={field}
-              />
+              >
+                {cats.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="block text-sm font-medium">
               विवरण
@@ -405,7 +424,7 @@ function AdminPage() {
                       <div>
                       <p className="font-display text-xl">{s.title}</p>
                       <p className="text-sm text-muted">
-                        {cats.find((c) => c.slug === s.category)?.label ?? s.category} · {s.location}
+                        {cats.find((c) => c.slug === s.category)?.label ?? s.category}
                       </p>
                       <Link
                         to="/article/$slug"
