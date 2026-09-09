@@ -26,7 +26,11 @@ function AboutPageView() {
       <p className="text-[11px] font-semibold tracking-[0.22em] text-crimson">KalaiyaOnline.Com</p>
       <h1 className="mt-2 font-display text-4xl font-normal">{page.title}</h1>
       {admin ? (
-        <button type="button" className="mt-3 text-sm font-semibold text-crimson" onClick={() => setEditing((v) => !v)}>
+        <button
+          type="button"
+          className="mt-3 text-sm font-semibold text-crimson"
+          onClick={() => setEditing((v) => !v)}
+        >
           {editing ? "पूर्वावलोकन" : "पेज सम्पादन"}
         </button>
       ) : null}
@@ -43,8 +47,18 @@ function AboutPageView() {
         >
           <section className="space-y-3 rounded-2xl border border-line bg-surface p-4">
             <p className="text-[11px] font-bold tracking-[0.16em] text-muted">पेज</p>
-            <input value={page.title} onChange={(e) => setPage({ ...page, title: e.target.value })} placeholder="शीर्षक" className="w-full rounded-xl border border-line bg-paper px-3 py-3" />
-            <textarea value={page.body} onChange={(e) => setPage({ ...page, body: e.target.value })} rows={6} className="w-full rounded-xl border border-line bg-paper px-3 py-3" />
+            <input
+              value={page.title}
+              onChange={(e) => setPage({ ...page, title: e.target.value })}
+              placeholder="शीर्षक"
+              className="w-full rounded-xl border border-line bg-paper px-3 py-3"
+            />
+            <textarea
+              value={page.body}
+              onChange={(e) => setPage({ ...page, body: e.target.value })}
+              rows={6}
+              className="w-full rounded-xl border border-line bg-paper px-3 py-3"
+            />
           </section>
           <section className="space-y-3 rounded-2xl border border-line bg-surface p-4">
             <p className="text-[11px] font-bold tracking-[0.16em] text-muted">सम्पर्क</p>
@@ -65,7 +79,9 @@ function AboutPageView() {
         </form>
       ) : (
         <>
-          <div className="mt-6 space-y-4 whitespace-pre-wrap text-base leading-relaxed text-ink-soft">{page.body}</div>
+          <div className="mt-6 space-y-4 whitespace-pre-wrap text-base leading-relaxed text-ink-soft">
+            {page.body}
+          </div>
           <dl className="mt-8 grid gap-4 text-sm">
             {page.address ? (
               <div className="rounded-md border border-line bg-surface px-4 py-3">
@@ -76,25 +92,41 @@ function AboutPageView() {
             {page.phone ? (
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">फोन</dt>
-                <dd><a className="text-crimson" href={`tel:${page.phone}`}>{page.phone}</a></dd>
+                <dd>
+                  <a className="text-crimson" href={`tel:${page.phone}`}>
+                    {page.phone}
+                  </a>
+                </dd>
               </div>
             ) : null}
             {page.email ? (
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">इमेल</dt>
-                <dd><a className="text-crimson" href={`mailto:${page.email}`}>{page.email}</a></dd>
+                <dd>
+                  <a className="text-crimson" href={`mailto:${page.email}`}>
+                    {page.email}
+                  </a>
+                </dd>
               </div>
             ) : null}
             {page.website ? (
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">साइट</dt>
-                <dd><a className="text-crimson hover:underline" href={page.website}>{page.website.replace(/^https?:\/\//, "")}</a></dd>
+                <dd>
+                  <a className="text-crimson hover:underline" href={page.website}>
+                    {page.website.replace(/^https?:\/\//, "")}
+                  </a>
+                </dd>
               </div>
             ) : null}
             {page.facebook ? (
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">फेसबुक</dt>
-                <dd><a className="text-crimson hover:underline" href={page.facebook}>फेसबुक पेज</a></dd>
+                <dd>
+                  <a className="text-crimson hover:underline" href={page.facebook}>
+                    फेसबुक पेज
+                  </a>
+                </dd>
               </div>
             ) : null}
             {page.registrationNo ? (
