@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { listPublishedStories } from "@/lib/desk";
-import { getFeatureFlags } from "@/lib/features";
-import { getSeoSettings } from "@/lib/seo";
+import { readFeatureFlags } from "@/lib/features";
+import { readSeoSettings } from "@/lib/seo";
 
 const STATIC_PATHS: { path: string; feature?: "gallery" | "directory" | "blood" | "members" | "market" | "patro" | "privacy" | "about" }[] = [
   { path: "/" },
@@ -20,9 +20,9 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const [seo, stories, flags] = await Promise.all([
-          getSeoSettings(),
+          readSeoSettings(),
           listPublishedStories().catch(() => []),
-          getFeatureFlags().catch(() => null),
+          readFeatureFlags().catch(() => null),
         ]);
         const host = seo.canonicalUrl.replace(/\/$/, "");
         const pages = STATIC_PATHS.filter((p) => !p.feature || !flags || flags[p.feature]);
