@@ -5,12 +5,12 @@ import { authMiddleware } from "@/lib/auth/middleware";
 
 const storyInput = z.object({
   title: z.string().trim().min(2, "शीर्षक लेख्नुहोस्।").max(180),
-  excerpt: z.string().max(400).optional().or(z.literal("")),
+  excerpt: z.string().max(400).optional(),
   body: z.string().trim().min(8, "विवरण लेख्नुहोस्।").max(20000),
   category: z.string().min(1).max(40),
-  location: z.string().max(80).optional().or(z.literal("")),
-  tags: z.string().max(160).optional().or(z.literal("")),
-  imageUrl: z.string().max(2000).optional().or(z.literal("")),
+  location: z.string().max(80).optional(),
+  tags: z.string().max(160).optional(),
+  imageUrl: z.string().max(2000).optional(),
   gallery: z.array(z.string().max(2000)).max(12).optional(),
 });
 
@@ -84,8 +84,9 @@ function slugify(title: string) {
     .toLowerCase()
     .replace(/[^\w\u0900-\u097F]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 72);
-  return `${base || "story"}-${Date.now().toString(36)}`;
+    .slice(0, 48);
+  const stamp = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  return `${base || "story"}-${stamp}`;
 }
 
 function slugifyCat(label: string) {
@@ -158,7 +159,7 @@ export const listAdminStories = createServerFn({ method: "GET" })
       select id, slug, title, excerpt, body, category, location, tags,
              image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
       from desk_stories
-      where user_id = ${context.userId} and deleted_at is null
+      where deleted_at is null
       order by created_at desc
     `;
   });
@@ -173,7 +174,7 @@ export const listTrashStories = createServerFn({ method: "GET" })
              image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt",
              deleted_at as "deletedAt"
       from desk_stories
-      where user_id = ${context.userId} and deleted_at is not null
+      where deleted_at is not null
       order by deleted_at desc
     `;
   });
@@ -228,7 +229,7 @@ export const updateStory = createServerFn({ method: "POST" })
           image_url = ${imageUrl},
           gallery_urls = ${galleryJson},
           updated_at = now()
-      where id = ${data.id} and user_id = ${context.userId} and deleted_at is null
+      where id = ${data.id} and deleted_at is null
       returning id, slug, title, excerpt, body, category, location, tags,
                 image_url as "imageUrl", published, created_at as "createdAt"
     `;
@@ -244,7 +245,7 @@ export const trashStory = createServerFn({ method: "POST" })
     await sql`
       update desk_stories
       set deleted_at = now()
-      where id = ${data.id} and user_id = ${context.userId} and deleted_at is null
+      where id = ${data.id} and deleted_at is null
     `;
     return { ok: true };
   });
@@ -258,7 +259,7 @@ export const restoreStory = createServerFn({ method: "POST" })
     await sql`
       update desk_stories
       set deleted_at = null
-      where id = ${data.id} and user_id = ${context.userId} and deleted_at is not null
+      where id = ${data.id} and deleted_at is not null
     `;
     return { ok: true };
   });
@@ -271,7 +272,7 @@ export const purgeStory = createServerFn({ method: "POST" })
     const sql = await getDeskSql();
     await sql`
       delete from desk_stories
-      where id = ${data.id} and user_id = ${context.userId} and deleted_at is not null
+      where id = ${data.id} and deleted_at is not null
     `;
     return { ok: true };
   });
