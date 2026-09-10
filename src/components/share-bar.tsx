@@ -14,7 +14,7 @@ export function ShareBar({
   const url = useMemo(() => {
     const suffix = path || "/";
     if (typeof window !== "undefined") return `${window.location.origin}${suffix}`;
-    return `https://kalaiyaonline.com${suffix}`;
+    return `https://www.kalaiyaonline.com${suffix}`;
   }, [path]);
   const encoded = encodeURIComponent(url);
   const text = encodeURIComponent(title);
