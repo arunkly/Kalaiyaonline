@@ -1,27 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { listPublishedStories } from "@/lib/desk";
+import { getFeatureFlags } from "@/lib/features";
 import { getSeoSettings } from "@/lib/seo";
 
-const STATIC_PATHS = [
-  "/",
-  "/about",
-  "/privacy",
-  "/gallery",
-  "/directory",
-  "/blood",
-  "/members",
-  "/market",
-  "/patro",
+const STATIC_PATHS: { path: string; feature?: "gallery" | "directory" | "blood" | "members" | "market" | "patro" | "privacy" | "about" }[] = [
+  { path: "/" },
+  { path: "/about", feature: "about" },
+  { path: "/privacy", feature: "privacy" },
+  { path: "/gallery", feature: "gallery" },
+  { path: "/directory", feature: "directory" },
+  { path: "/blood", feature: "blood" },
+  { path: "/members", feature: "members" },
+  { path: "/market", feature: "market" },
+  { path: "/patro", feature: "patro" },
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const [seo, stories] = await Promise.all([getSeoSettings(), listPublishedStories().catch(() => [])]);
+        const [seo, stories, flags] = await Promise.all([
+          getSeoSettings(),
+          listPublishedStories().catch(() => []),
+          getFeatureFlags().catch(() => null),
+        ]);
         const host = seo.canonicalUrl.replace(/\/$/, "");
+        const pages = STATIC_PATHS.filter((p) => !p.feature || !flags || flags[p.feature]);
         const urls = [
-          ...STATIC_PATHS.map((path) => ({ loc: `${host}${path === "/" ? "/" : path}`, changefreq: "daily", priority: path === "/" ? "1.0" : "0.7" })),
+          ...pages.map((p) => ({ loc: `${host}${p.path === "/" ? "/" : p.path}`, changefreq: "daily", priority: p.path === "/" ? "1.0" : "0.7" })),
           ...stories.map((s) => ({
             loc: `${host}/article/${s.slug}`,
             changefreq: "hourly",
