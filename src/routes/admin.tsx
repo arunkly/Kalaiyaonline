@@ -148,6 +148,7 @@ function AdminPage() {
           data: {
             id: editingId,
             title,
+            excerpt,
             body,
             category,
             tags,
@@ -160,6 +161,7 @@ function AdminPage() {
         await createStory({
           data: {
             title,
+            excerpt,
             body,
             category,
             tags,
@@ -326,6 +328,16 @@ function AdminPage() {
             <label className="block text-sm font-medium">
               शीर्षक
               <input value={title} onChange={(e) => setTitle(e.target.value)} required className={field} />
+            </label>
+            <label className="block text-sm font-medium">
+              सारांश
+              <textarea
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                rows={3}
+                placeholder="छोटो सारांश लेख्नुहोस्"
+                className={field}
+              />
             </label>
             <label className="block text-sm font-medium">
               फिचर्ड तस्बिर (बाह्य लिंक)
