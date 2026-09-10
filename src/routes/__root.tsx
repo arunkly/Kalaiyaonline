@@ -3,35 +3,30 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
 import { ThemeProvider, ThemeVars } from "@/components/theme-provider";
-import { siteOrigin } from "@/lib/site-url";
-import { DEFAULT_SEO, getSeoSettings, organizationJsonLd, seoImage, type SeoSettings } from "@/lib/seo";
 import { FeaturesProvider } from "@/components/features-provider";
-import { DEFAULT_FEATURES, getFeatureFlags, type FeatureFlags } from "@/lib/features";
-import { DEFAULT_THEME, fontHref, getThemeSettings, type ThemeSettings } from "@/lib/theme";
+import { siteOrigin } from "@/lib/site-url";
+import { DEFAULT_SEO, organizationJsonLd, seoImage, type SeoSettings } from "@/lib/seo";
+import { DEFAULT_FEATURES, type FeatureFlags } from "@/lib/features";
+import { DEFAULT_THEME, fontHref, type ThemeSettings } from "@/lib/theme";
+import { AppErrorComponent } from "@/lib/error-component";
 import appCss from "../styles.css?url";
 
 type RootData = { seo: SeoSettings; theme: ThemeSettings; features: FeatureFlags };
 
 function asRootData(loaderData: unknown): RootData {
-  const raw = loaderData as Partial<RootData> | SeoSettings | null | undefined;
-  if (raw && typeof raw === "object" && "seo" in raw) {
-    return {
-      seo: (raw as RootData).seo ?? DEFAULT_SEO,
-      theme: (raw as RootData).theme ?? DEFAULT_THEME,
-      features: (raw as RootData).features ?? DEFAULT_FEATURES,
-    };
-  }
-  return { seo: (raw as SeoSettings) ?? DEFAULT_SEO, theme: DEFAULT_THEME, features: DEFAULT_FEATURES };
+  const raw = loaderData as Partial<RootData> | null | undefined;
+  return {
+    seo: raw?.seo ?? DEFAULT_SEO,
+    theme: raw?.theme ?? DEFAULT_THEME,
+    features: raw?.features ?? DEFAULT_FEATURES,
+  };
 }
 
 export const Route = createRootRoute({
+  errorComponent: AppErrorComponent,
   loader: async () => {
-    const [seo, theme, features] = await Promise.all([
-      getSeoSettings().catch(() => DEFAULT_SEO),
-      getThemeSettings().catch(() => DEFAULT_THEME),
-      getFeatureFlags().catch(() => DEFAULT_FEATURES),
-    ]);
-    return { seo, theme, features } satisfies RootData;
+    const { loadSiteChrome } = await import("@/lib/site-chrome.server");
+    return loadSiteChrome();
   },
   head: ({ loaderData }) => {
     const { seo, theme } = asRootData(loaderData);
@@ -83,17 +78,17 @@ function RootDocument() {
     <html lang="ne" className="antialiased" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <ThemeVars theme={theme} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body className="bg-paper text-ink">
+        <ThemeVars theme={theme} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <PreviewHostBridge />
         <AuthProvider>
           <ThemeProvider theme={theme}>
             <FeaturesProvider flags={features}>
-            <Shell>
-              <Outlet />
-            </Shell>
+              <Shell>
+                <Outlet />
+              </Shell>
             </FeaturesProvider>
           </ThemeProvider>
         </AuthProvider>
