@@ -3,10 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { ChromeBoot } from "@/components/chrome-boot";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
-import { siteOrigin } from "@/lib/site-url";
-import { DEFAULT_SEO } from "@/lib/seo";
-import { DEFAULT_THEME, fontHref } from "@/lib/theme";
-import { absoluteUrl } from "@/lib/site-url";
+import { absoluteUrl, siteOrigin } from "@/lib/site-url";
 import appCss from "../styles.css?url";
 
 const APP_NAME = DEFAULT_SEO.siteName;
