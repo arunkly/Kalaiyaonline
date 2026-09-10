@@ -36,10 +36,11 @@ function requestHost(event: GrokPwaEvent): string {
   );
 }
 
-function injectHeadStreaming(response: Response, host: string): Response {
+function injectHeadStreaming(response: Response, host: string, keepShareMeta = false): Response {
   const injector = createHeadInjector({
     host,
     site: grokOgIdentity.site,
+    keepShareMeta,
   });
   const transformed = response.body!.pipeThrough(
     new TransformStream<Uint8Array, Uint8Array>({
@@ -105,7 +106,11 @@ export default async function grokPwaMiddleware(
     String(result.headers.get("content-type") ?? "").includes("text/html") &&
     !result.headers.get("content-encoding")
   ) {
-    return injectHeadStreaming(result, requestHost(event));
+    return injectHeadStreaming(
+      result,
+      requestHost(event),
+      /^\/(article|gallery|directory)\//.test(path),
+    );
   }
   return result;
 }
