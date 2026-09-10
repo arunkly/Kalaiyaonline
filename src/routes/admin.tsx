@@ -60,7 +60,6 @@ function AdminPage() {
   const [location, setLocation] = useState("कलैया, बारा");
   const [tags, setTags] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [gallery, setGallery] = useState<string[]>([""]);
   const [catLabel, setCatLabel] = useState("");
   const [editCatId, setEditCatId] = useState<number | null>(null);
 
@@ -116,7 +115,7 @@ function AdminPage() {
     setBody("");
     setTags("");
     setImageUrl("");
-    setGallery([""]);
+    setLocation("कलैया, बारा");
     setCategory(defaultCategory(cats));
   }
 
@@ -130,12 +129,6 @@ function AdminPage() {
     setLocation(s.location);
     setTags(s.tags);
     setImageUrl(s.imageUrl ?? "");
-    try {
-      const extra = s.galleryUrls ? (JSON.parse(s.galleryUrls) as string[]) : [];
-      setGallery(extra.length ? extra : [""]);
-    } catch {
-      setGallery([""]);
-    }
   }
 
   async function onSaveStory(e: React.FormEvent) {
@@ -153,8 +146,7 @@ function AdminPage() {
             category,
             tags,
             imageUrl,
-            location: location || "कलैया",
-            gallery: gallery.filter((u) => u.trim()),
+            location: location.trim() || "कलैया, बारा",
           },
         });
       } else {
@@ -166,8 +158,7 @@ function AdminPage() {
             category,
             tags,
             imageUrl,
-            location: location || "कलैया",
-            gallery: gallery.filter((u) => u.trim()),
+            location: location.trim() || "कलैया, बारा",
           },
         });
       }
@@ -339,6 +330,8 @@ function AdminPage() {
               <textarea
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
+                required
+                minLength={4}
                 rows={3}
                 placeholder="छोटो सारांश लेख्नुहोस्"
                 className={field}
@@ -361,50 +354,31 @@ function AdminPage() {
                 className="max-h-48 w-full rounded-md border border-line object-cover"
               />
             ) : null}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">थप तस्बिरहरू (बाह्य लिंक)</p>
-              {gallery.map((url, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={url}
-                    placeholder="https://..."
-                    onChange={(e) =>
-                      setGallery((rows) => rows.map((row, idx) => (idx === i ? e.target.value : row)))
-                    }
-                    className={field + " mt-0"}
-                  />
-                  <button
-                    type="button"
-                    className="rounded-xl border border-line px-3 text-sm"
-                    onClick={() => setGallery((rows) => rows.filter((_, idx) => idx !== i))}
-                  >
-                    हटाउनुहोस्
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                className="text-sm font-semibold text-crimson"
-                onClick={() => setGallery((rows) => [...rows, ""])}
-              >
-                + तस्बिर थप्नुहोस्
-              </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-sm font-medium">
+                विभाग
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className={field}
+                >
+                  {cats.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm font-medium">
+                स्थान
+                <input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
+                  className={field}
+                />
+              </label>
             </div>
-            <label className="block text-sm font-medium">
-              विभाग
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={field}
-              >
-                {cats.map((c) => (
-                  <option key={c.slug} value={c.slug}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label className="block text-sm font-medium">
               विवरण
               <textarea
