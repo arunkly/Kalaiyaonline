@@ -5,27 +5,34 @@ import { ShareBar } from "@/components/share-bar";
 import { formatDate, toNpDigits } from "@/data/articles";
 import { getDirEntry, getMapSettings, listDirCategories, type DirItem } from "@/lib/directory-desk";
 import { DEFAULT_MAP, mapEmbedSrc, mapOpenUrl, type MapSettings } from "@/lib/map-embed";
-import { absoluteUrl, siteOrigin } from "@/lib/site-url";
 import { incrementView } from "@/lib/views";
 
 export const Route = createFileRoute("/directory/$id")({
   loader: ({ params }) => getDirEntry({ data: { id: Number(params.id) } }),
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const item = loaderData;
-    const origin = siteOrigin();
-    const title = item?.name ? `${item.name} | KalaiyaOnline` : "KalaiyaOnline";
-    const image = absoluteUrl(item?.imageUrl || "/og.jpg", origin);
+    const origin = "https://www.kalaiyaonline.com";
+    const id = String(item?.id ?? params.id);
+    const headline = item?.name?.trim() || "KalaiyaOnline";
+    const image = item?.imageUrl
+      ? `${origin}/share-image/directory/${encodeURIComponent(id)}`
+      : `${origin}/og.jpg`;
+    const url = `${origin}/directory/${encodeURIComponent(id)}`;
     return {
       meta: [
-        { title },
+        { title: item?.name ? `${item.name} | KalaiyaOnline` : "KalaiyaOnline" },
         { property: "og:type", content: "article" },
-        { property: "og:title", content: item?.name || "KalaiyaOnline" },
+        { property: "og:site_name", content: "KalaiyaOnline" },
+        { property: "og:title", content: headline },
         { property: "og:description", content: item?.place || "डाइरेक्ट्री" },
         { property: "og:image", content: image },
-        { property: "og:url", content: `${origin}/directory/${item?.id ?? ""}` },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: headline },
         { name: "twitter:image", content: image },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: DirectoryPostPage,
