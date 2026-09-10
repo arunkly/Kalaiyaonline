@@ -3,6 +3,7 @@ import { Camera, MapPin, MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { displayTitle } from "@/data/articles";
 import { MembersWidget } from "@/components/members-widget";
+import { useFeature } from "@/components/features-provider";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { compressImage } from "@/lib/compress-image";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/account")({ component: AccountPage });
 
 function AccountPage() {
   const { user, isPending } = useCurrentUserState();
+  const chatOn = useFeature("chat");
   const saved = usePrefs((s) => s.saved);
   const edition = useEdition();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -137,6 +139,7 @@ function AccountPage() {
               >
                 फोटो थप्नुहोस्
               </button>
+              {chatOn ? (
               <Link
                 to="/chat"
                 className="inline-flex min-h-10 items-center gap-1 rounded-md bg-[#e4e6eb] px-4 text-sm font-semibold"
@@ -144,6 +147,7 @@ function AccountPage() {
                 <MessageCircle className="size-4" />
                 सन्देश
               </Link>
+              ) : null}
             </div>
           </div>
           <div className="mt-3">
