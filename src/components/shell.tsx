@@ -24,23 +24,27 @@ import { MarketTicker } from "@/components/market-ticker";
 import { WeatherBar } from "@/components/weather-bar";
 import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
-import { useCategories } from "@/lib/use-categories";
+import { useFeatures } from "@/components/features-provider";
+import { featureForPath } from "@/lib/features";
 
 const NAV = [
   { to: "/", label: "गृह", icon: Home },
 ] as const;
 
 const MORE_NAV = [
-  { to: "/gallery", label: "ग्यालरी", icon: Camera },
-  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2 },
-  { to: "/blood", label: "रक्तदाता", icon: Droplet },
-  { to: "/chat", label: "च्याट", icon: MessageCircle },
+  { to: "/gallery", label: "ग्यालरी", icon: Camera, feature: "gallery" },
+  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2, feature: "directory" },
+  { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" },
+  { to: "/chat", label: "च्याट", icon: MessageCircle, feature: "chat" },
 ] as const;
 
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const cats = useCategories();
+  const features = useFeatures();
+  const moreNav = MORE_NAV.filter((item) => features[item.feature]);
+  const navItems = [...NAV, ...moreNav];
   const [open, setOpen] = useState(false);
   const [footerOpen, setFooterOpen] = useState(false);
   const [about, setAbout] = useState<AboutPage | null>(null);
@@ -54,7 +58,11 @@ export function Shell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setOpen(false);
-  }, [pathname]);
+    const key = featureForPath(pathname);
+    if (key && features[key] === false) {
+      void navigate({ to: "/" });
+    }
+  }, [pathname, features, navigate]);
 
   return (
     <div className="min-h-dvh text-ink">
@@ -97,7 +105,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </form>
 
           <nav className="hidden flex-1 justify-center gap-1 lg:flex">
-            {([...NAV, ...MORE_NAV] as const).map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.to;
               return (
@@ -137,8 +145,8 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
           </div>
         </div>
-        <MarketTicker />
-        <WeatherBar />
+        {features.market ? <MarketTicker /> : null}
+        {features.weather ? <WeatherBar /> : null}
       </header>
 
       {open ? (
@@ -163,12 +171,16 @@ export function Shell({ children }: { children: ReactNode }) {
                 {c.label}
               </Link>
             ))}
+            {features.about ? (
             <Link to="/about" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">
               हाम्रोबारे
             </Link>
+            ) : null}
+            {features.dateConverter ? (
             <Link to="/date-converter" className="rounded-xl px-3 py-3 text-sm hover:bg-chip">
               मिति कन्भर्टर
             </Link>
+            ) : null}
             <Link to="/account" className="rounded-xl px-3 py-3 text-sm font-semibold hover:bg-chip">
               मेरो प्रोफाइल
             </Link>
@@ -188,8 +200,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="mx-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] rounded-2xl border border-line bg-white/95 shadow-[0_-8px_30px_rgb(16_38_26/0.12)] backdrop-blur-md">
           <div className="h-1 rounded-t-2xl bg-gradient-to-r from-crimson via-mark to-crimson" />
-          <div className="grid grid-cols-6 px-1 py-1">
-          {([...NAV, ...MORE_NAV] as const).map((item) => {
+          <div className="flex px-1 py-1">
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.to;
             return (
@@ -197,7 +209,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
+                  "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
                   active ? "text-crimson" : "text-muted",
                 )}
               >
@@ -217,7 +229,7 @@ export function Shell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setFooterOpen((v) => !v)}
             className={cn(
-              "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
+              "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
               footerOpen ? "text-crimson" : "text-muted",
             )}
             aria-label="मेनु"
@@ -240,14 +252,16 @@ export function Shell({ children }: { children: ReactNode }) {
           <p className="px-1 pb-2 text-[11px] font-bold tracking-[0.16em] text-muted">मेनु</p>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays },
-              { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type },
-              { to: "/market", label: "सेयर बजार", icon: LineChart },
-              { to: "/patro", label: "पात्रो", icon: CalendarDays },
-              { to: "/blood", label: "रक्तदाता", icon: Droplet },
-              { to: "/about", label: "हाम्रोबारे", icon: Info },
-              { to: "/privacy", label: "गोपनीयता", icon: Shield },
-            ].map((item) => {
+              { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays, feature: "dateConverter" as const },
+              { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type, feature: "preeti" as const },
+              { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" as const },
+              { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" as const },
+              { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" as const },
+              { to: "/about", label: "हाम्रोबारे", icon: Info, feature: "about" as const },
+              { to: "/privacy", label: "गोपनीयता", icon: Shield, feature: "privacy" as const },
+            ]
+              .filter((item) => features[item.feature])
+              .map((item) => {
               const Icon = item.icon;
               return (
                 <Link
