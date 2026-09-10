@@ -77,7 +77,7 @@ async function ensureTable() {
   return sql;
 }
 
-export const getFeatureFlags = createServerFn({ method: "GET" }).handler(async () => {
+export async function readFeatureFlags(): Promise<FeatureFlags> {
   try {
     const sql = await ensureTable();
     const rows = await sql<{ flags: string }>`select flags from app_features where id = 1 limit 1`;
@@ -89,11 +89,13 @@ export const getFeatureFlags = createServerFn({ method: "GET" }).handler(async (
   } catch {
     return DEFAULT_FEATURES;
   }
-});
+}
+
+export const getFeatureFlags = createServerFn({ method: "GET" }).handler(async () => readFeatureFlags());
 
 export const saveFeatureFlags = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator(z.object({ flags: z.record(z.string(), z.boolean()).or(z.any()) }))
+  .validator(z.object({ flags: z.any() }))
   .handler(async ({ data, context }) => {
     const { getSessionUser } = await import("@/lib/auth/verify.server");
     const session = await getSessionUser();
