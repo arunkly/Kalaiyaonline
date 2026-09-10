@@ -5,10 +5,10 @@ import { authMiddleware } from "@/lib/auth/middleware";
 
 const storyInput = z.object({
   title: z.string().trim().min(2, "शीर्षक लेख्नुहोस्।").max(180),
-  excerpt: z.string().trim().min(4, "सारांश लेख्नुहोस्।").max(400),
+  excerpt: z.string().max(400).optional(),
   body: z.string().trim().min(8, "विवरण लेख्नुहोस्।").max(8000),
-  category: z.string().min(1).max(40),
-  location: z.string().trim().min(2).max(80),
+  category: z.string().min(1).max(40).optional(),
+  location: z.string().max(80).optional(),
   tags: z.string().max(160).optional(),
   imageUrl: z.string().max(2000).optional(),
 });
@@ -48,6 +48,38 @@ function cleanImageUrl(raw?: string) {
   }
 }
 
+async function ensureDesk() {
+  const { getSql } = await import("@/lib/db");
+  const sql = await getSql();
+  await sql`
+    create table if not exists desk_stories (
+      id serial primary key,
+      user_id text not null,
+      slug text not null unique,
+      title text not null,
+      excerpt text not null,
+      body text not null,
+      category text not null default 'local',
+      location text not null default 'कलैया, बारा',
+      tags text not null default '',
+      published boolean not null default true,
+      created_at timestamptz not null default now()
+    )
+  `;
+  await sql`
+    create table if not exists desk_categories (
+      id serial primary key,
+      slug text not null unique,
+      label text not null
+    )
+  `;
+  await sql`alter table desk_stories add column if not exists image_url text not null default ''`;
+  await sql`alter table desk_stories add column if not exists deleted_at timestamptz`;
+  await sql`alter table desk_stories add column if not exists updated_at timestamptz not null default now()`;
+  await sql`create index if not exists desk_stories_published_idx on desk_stories (published)`;
+  return sql;
+}
+
 function slugify(title: string) {
   const base = title
     .toLowerCase()
@@ -85,8 +117,7 @@ export const ensureAdminReady = createServerFn({ method: "POST" }).handler(
 
 export const listPublishedStories = createServerFn({ method: "GET" }).handler(
   async () => {
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     try {
       return await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, location, tags,
@@ -110,8 +141,7 @@ export const listPublishedStories = createServerFn({ method: "GET" }).handler(
 export const getPublishedStory = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1).max(120) }))
   .handler(async ({ data }) => {
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     try {
       const rows = await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, location, tags,
@@ -135,8 +165,7 @@ export const getPublishedStory = createServerFn({ method: "GET" })
 
 export const listCategories = createServerFn({ method: "GET" }).handler(
   async () => {
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     return sql<DeskCategory>`
       select id, slug, label from desk_categories
       order by case when slug = 'headline' then 0 else 1 end, id asc
@@ -148,8 +177,7 @@ export const listAdminStories = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     try {
       return await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, location, tags,
@@ -172,8 +200,7 @@ export const listTrashStories = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     try {
       return await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, location, tags,
@@ -193,22 +220,37 @@ export const createStory = createServerFn({ method: "POST" })
   .validator(storyInput)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    if (!context.userId) throw new Error("फेरि लगइन गर्नुहोस्।");
+    const sql = await ensureDesk();
     const slug = slugify(data.title);
     const tags = data.tags?.trim() ?? "";
     const imageUrl = cleanImageUrl(data.imageUrl);
-    const rows = await sql<DeskStory>`
-      insert into desk_stories
-        (user_id, slug, title, excerpt, body, category, location, tags, image_url, published)
-      values
-        (${context.userId}, ${slug}, ${data.title}, ${data.excerpt}, ${data.body},
-         ${data.category}, ${data.location}, ${tags}, ${imageUrl}, true)
-      returning id, slug, title, excerpt, body, category, location, tags,
-                image_url as "imageUrl", published, created_at as "createdAt"
-    `;
-    if (!rows[0]) throw new Error("समाचार सेभ भएन।");
-    return rows[0];
+    const excerpt = (data.excerpt?.trim() || data.body.replace(/\s+/g, " ").trim()).slice(0, 400);
+    const location = data.location?.trim() || "कलैया, बारा";
+    const category = data.category?.trim() || "local";
+    try {
+      const rows = await sql<DeskStory>`
+        insert into desk_stories
+          (user_id, slug, title, excerpt, body, category, location, tags, image_url, published)
+        values
+          (${context.userId}, ${slug}, ${data.title}, ${excerpt}, ${data.body},
+           ${category}, ${location}, ${tags}, ${imageUrl}, true)
+        returning id, slug, title, excerpt, body, category, location, tags,
+                  image_url as "imageUrl", published, created_at as "createdAt"
+      `;
+      if (rows[0]) return rows[0];
+    } catch {
+      const rows = await sql<DeskStory>`
+        insert into desk_stories
+          (user_id, slug, title, excerpt, body, category, location, tags, published)
+        values
+          (${context.userId}, ${slug}, ${data.title}, ${excerpt}, ${data.body},
+           ${category}, ${location}, ${tags}, true)
+        returning id, slug, title, excerpt, body, category, location, tags, published, created_at as "createdAt"
+      `;
+      if (rows[0]) return rows[0];
+    }
+    throw new Error("समाचार सेभ भएन।");
   });
 
 export const updateStory = createServerFn({ method: "POST" })
@@ -216,18 +258,20 @@ export const updateStory = createServerFn({ method: "POST" })
   .validator(storyInput.extend({ id: z.number() }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     const tags = data.tags?.trim() ?? "";
     const imageUrl = cleanImageUrl(data.imageUrl);
+    const excerpt = (data.excerpt?.trim() || data.body.replace(/\s+/g, " ").trim()).slice(0, 400);
+    const location = data.location?.trim() || "कलैया, बारा";
+    const category = data.category?.trim() || "local";
     try {
       const rows = await sql<DeskStory>`
         update desk_stories
         set title = ${data.title},
-            excerpt = ${data.excerpt},
+            excerpt = ${excerpt},
             body = ${data.body},
-            category = ${data.category},
-            location = ${data.location},
+            category = ${category},
+            location = ${location},
             tags = ${tags},
             image_url = ${imageUrl},
             updated_at = now()
@@ -240,10 +284,10 @@ export const updateStory = createServerFn({ method: "POST" })
       const rows = await sql<DeskStory>`
         update desk_stories
         set title = ${data.title},
-            excerpt = ${data.excerpt},
+            excerpt = ${excerpt},
             body = ${data.body},
-            category = ${data.category},
-            location = ${data.location},
+            category = ${category},
+            location = ${location},
             tags = ${tags},
             image_url = ${imageUrl}
         where id = ${data.id}
@@ -259,8 +303,7 @@ export const trashStory = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     await sql`
       update desk_stories
       set deleted_at = now()
@@ -274,8 +317,7 @@ export const restoreStory = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     await sql`
       update desk_stories
       set deleted_at = null
@@ -289,8 +331,7 @@ export const purgeStory = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     await sql`
       delete from desk_stories
       where id = ${data.id} and deleted_at is not null
@@ -303,8 +344,7 @@ export const createCategory = createServerFn({ method: "POST" })
   .validator(z.object({ label: z.string().min(2).max(40) }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     const slug = slugifyCat(data.label);
     const rows = await sql<DeskCategory>`
       insert into desk_categories (slug, label)
@@ -324,8 +364,7 @@ export const updateCategory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     const existing = await sql<DeskCategory>`
       select id, slug, label from desk_categories where id = ${data.id}
     `;
@@ -352,8 +391,7 @@ export const deleteCategory = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureDesk();
     const existing = await sql<DeskCategory>`
       select id, slug, label from desk_categories where id = ${data.id}
     `;
