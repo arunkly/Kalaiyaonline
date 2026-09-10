@@ -51,6 +51,7 @@ function AdminPage() {
   const [trash, setTrash] = useState<DeskStory[] | null>(null);
   const [cats, setCats] = useState<DeskCategory[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [okNotice, setOkNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
@@ -135,6 +136,7 @@ function AdminPage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setOkNotice(null);
     try {
       if (editingId) {
         await updateStory({
@@ -162,8 +164,15 @@ function AdminPage() {
           },
         });
       }
+      const saved = editingId ? "समाचार अद्यावधिक भयो।" : "समाचार प्रकाशित भयो।";
       resetForm();
-      await refresh();
+      try {
+        await refresh();
+      } catch {
+        /* already saved */
+      }
+      setError(null);
+      setOkNotice(saved);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "समाचार सेभ भएन।";
       setError(
@@ -314,6 +323,7 @@ function AdminPage() {
       </div>
 
       {error ? <p className="text-sm text-mark">{error}</p> : null}
+      {okNotice ? <p className="text-sm font-semibold text-[#2E7D32]">{okNotice}</p> : null}
 
       {tab === "posts" ? (
         <>
