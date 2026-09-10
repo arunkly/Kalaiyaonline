@@ -111,3 +111,7 @@ export function timeAgoNp(iso: string | Date | null | undefined) {
   if (d < 7) return `${toNpDigits(d)} दिन अगाडि`;
   return formatDate(iso);
 }
+
+export function displayTitle(article: { title: string; titleNp?: string }) {
+  return article.titleNp ?? article.title;
+}
