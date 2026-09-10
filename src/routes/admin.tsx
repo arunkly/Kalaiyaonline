@@ -174,7 +174,12 @@ function AdminPage() {
       resetForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "समाचार सेभ भएन।");
+      const msg = err instanceof Error ? err.message : "समाचार सेभ भएन।";
+      setError(
+        msg === "Unauthorized"
+          ? "सत्र सकियो। फेरि लगइन गर्नुहोस्।"
+          : msg,
+      );
     } finally {
       setSaving(false);
     }
