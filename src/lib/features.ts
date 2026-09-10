@@ -16,6 +16,7 @@ export const FEATURE_CATALOG = [
   { key: "privacy", label: "गोपनीयता नीति", hint: "गोपनीयता पेज" },
   { key: "members", label: "दर्ता सदस्य", hint: "सदस्य सूची" },
   { key: "about", label: "हाम्रोबारे", hint: "बारेमा पेज" },
+  { key: "election", label: "निर्वाचन अपडेट", hint: "मधेश चुनाव नतिजा" },
 ] as const;
 
 export type FeatureKey = (typeof FEATURE_CATALOG)[number]["key"];
@@ -34,6 +35,7 @@ export const DEFAULT_FEATURES: FeatureFlags = {
   privacy: true,
   members: true,
   about: true,
+  election: true,
 };
 
 export const FEATURE_PATHS: { prefix: string; key: FeatureKey }[] = [
@@ -49,6 +51,7 @@ export const FEATURE_PATHS: { prefix: string; key: FeatureKey }[] = [
   { prefix: "/members", key: "members" },
   { prefix: "/member", key: "members" },
   { prefix: "/about", key: "about" },
+  { prefix: "/election", key: "election" },
 ];
 
 export function featureForPath(pathname: string): FeatureKey | null {
