@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getSeoSettings } from "@/lib/seo";
+import { readSeoSettings } from "@/lib/seo";
 
 export const Route = createFileRoute("/robots.txt")({
   server: {
     handlers: {
       GET: async () => {
-        const seo = await getSeoSettings();
+        const seo = await readSeoSettings();
         const host = seo.canonicalUrl.replace(/\/$/, "");
         const body = [
           "User-agent: *",
