@@ -5,10 +5,12 @@ import { Shell } from "@/components/shell";
 import { ThemeProvider, ThemeVars } from "@/components/theme-provider";
 import { siteOrigin } from "@/lib/site-url";
 import { DEFAULT_SEO, getSeoSettings, organizationJsonLd, seoImage, type SeoSettings } from "@/lib/seo";
+import { FeaturesProvider } from "@/components/features-provider";
+import { DEFAULT_FEATURES, getFeatureFlags, type FeatureFlags } from "@/lib/features";
 import { DEFAULT_THEME, fontHref, getThemeSettings, type ThemeSettings } from "@/lib/theme";
 import appCss from "../styles.css?url";
 
-type RootData = { seo: SeoSettings; theme: ThemeSettings };
+type RootData = { seo: SeoSettings; theme: ThemeSettings; features: FeatureFlags };
 
 function asRootData(loaderData: unknown): RootData {
   const raw = loaderData as Partial<RootData> | SeoSettings | null | undefined;
@@ -16,18 +18,20 @@ function asRootData(loaderData: unknown): RootData {
     return {
       seo: (raw as RootData).seo ?? DEFAULT_SEO,
       theme: (raw as RootData).theme ?? DEFAULT_THEME,
+      features: (raw as RootData).features ?? DEFAULT_FEATURES,
     };
   }
-  return { seo: (raw as SeoSettings) ?? DEFAULT_SEO, theme: DEFAULT_THEME };
+  return { seo: (raw as SeoSettings) ?? DEFAULT_SEO, theme: DEFAULT_THEME, features: DEFAULT_FEATURES };
 }
 
 export const Route = createRootRoute({
   loader: async () => {
-    const [seo, theme] = await Promise.all([
+    const [seo, theme, features] = await Promise.all([
       getSeoSettings().catch(() => DEFAULT_SEO),
       getThemeSettings().catch(() => DEFAULT_THEME),
+      getFeatureFlags().catch(() => DEFAULT_FEATURES),
     ]);
-    return { seo, theme } satisfies RootData;
+    return { seo, theme, features } satisfies RootData;
   },
   head: ({ loaderData }) => {
     const { seo, theme } = asRootData(loaderData);
@@ -73,7 +77,7 @@ export const Route = createRootRoute({
 });
 
 function RootDocument() {
-  const { seo, theme } = asRootData(Route.useLoaderData());
+  const { seo, theme, features } = asRootData(Route.useLoaderData());
   const jsonLd = JSON.stringify(organizationJsonLd(seo)).replace(/</g, "\\u003c");
   return (
     <html lang="ne" className="antialiased" suppressHydrationWarning>
@@ -86,9 +90,11 @@ function RootDocument() {
         <PreviewHostBridge />
         <AuthProvider>
           <ThemeProvider theme={theme}>
+            <FeaturesProvider flags={features}>
             <Shell>
               <Outlet />
             </Shell>
+            </FeaturesProvider>
           </ThemeProvider>
         </AuthProvider>
         <Scripts />
