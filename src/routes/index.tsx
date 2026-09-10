@@ -5,6 +5,7 @@ import { isHeadline, type Article } from "@/data/articles";
 import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
+import { ElectionStrip } from "@/components/election-strip";
 import { PostSidebar } from "@/components/post-sidebar";
 import { useFeatures } from "@/components/features-provider";
 import { useEdition } from "@/lib/edition";
@@ -62,6 +63,7 @@ function Home() {
   return (
     <div className="space-y-8">
       <AdSlot slot="home-top" />
+      <ElectionStrip />
 
       {hero ? (
         <ArticleCard article={hero} variant="hero" />
