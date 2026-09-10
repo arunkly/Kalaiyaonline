@@ -24,6 +24,7 @@ import { MarketTicker } from "@/components/market-ticker";
 import { WeatherBar } from "@/components/weather-bar";
 import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
+import { useCategories } from "@/lib/use-categories";
 import { useFeatures } from "@/components/features-provider";
 import { featureForPath } from "@/lib/features";
 
