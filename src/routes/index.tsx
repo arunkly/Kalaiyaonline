@@ -6,6 +6,7 @@ import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
 import { PostSidebar } from "@/components/post-sidebar";
+import { useFeatures } from "@/components/features-provider";
 import { useEdition } from "@/lib/edition";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +23,7 @@ function matchesCategory(article: Article, slug: string, label: string) {
 function Home() {
   const edition = useEdition();
   const cats = useCategories();
+  const features = useFeatures();
   const [albums, setAlbums] = useState<GalleryPost[]>([]);
   const [places, setPlaces] = useState<DirItem[]>([]);
   const [dirCats, setDirCats] = useState<DirCategory[]>([]);
@@ -112,7 +114,9 @@ function Home() {
         </div>
       </div>
 
+      {features.gallery || features.directory ? (
       <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+        {features.gallery ? (
         <section className="min-w-0 overflow-hidden rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">ग्यालरी</p>
@@ -143,6 +147,8 @@ function Home() {
             </div>
           </div>
         </section>
+        ) : null}
+        {features.directory ? (
         <section className="rounded-[1.5rem] bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-2xl">डाइरेक्ट्री</p>
@@ -158,7 +164,9 @@ function Home() {
             ))}
           </ul>
         </section>
+        ) : null}
       </div>
+      ) : null}
       <AdSlot slot="home-sidebar" />
     </div>
   );
