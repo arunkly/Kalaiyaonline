@@ -1,22 +1,24 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { FeaturesProvider } from "@/components/features-provider";
 import { ThemeProvider, ThemeVars } from "@/components/theme-provider";
-import { DEFAULT_FEATURES, getFeatureFlags } from "@/lib/features";
-import { getSeoSettings } from "@/lib/seo";
-import { DEFAULT_THEME, fontHref, getThemeSettings } from "@/lib/theme";
+import { DEFAULT_FEATURES, type FeatureFlags } from "@/lib/features";
+import { DEFAULT_THEME, fontHref, type ThemeSettings } from "@/lib/theme";
 
 export function ChromeBoot({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState(DEFAULT_THEME);
-  const [features, setFeatures] = useState(DEFAULT_FEATURES);
+  const [theme, setTheme] = useState<ThemeSettings>(DEFAULT_THEME);
+  const [features, setFeatures] = useState<FeatureFlags>(DEFAULT_FEATURES);
 
   useEffect(() => {
-    void getThemeSettings()
+    void import("@/lib/theme")
+      .then((m) => m.getThemeSettings())
       .then(setTheme)
       .catch(() => undefined);
-    void getFeatureFlags()
+    void import("@/lib/features")
+      .then((m) => m.getFeatureFlags())
       .then(setFeatures)
       .catch(() => undefined);
-    void getSeoSettings()
+    void import("@/lib/seo")
+      .then((m) => m.getSeoSettings())
       .then((seo) => {
         if (seo.title) document.title = seo.title;
       })
@@ -25,16 +27,14 @@ export function ChromeBoot({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const href = fontHref(theme.font);
-    const existing = document.querySelector<HTMLLinkElement>('link[data-theme-font="1"]');
-    if (existing) {
-      existing.href = href;
-      return;
+    let link = document.querySelector<HTMLLinkElement>('link[data-theme-font="1"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.setAttribute("data-theme-font", "1");
+      document.head.appendChild(link);
     }
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
     link.href = href;
-    link.setAttribute("data-theme-font", "1");
-    document.head.appendChild(link);
   }, [theme.font]);
 
   return (
