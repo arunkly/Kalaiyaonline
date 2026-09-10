@@ -1,3 +1,4 @@
+/** Homepage news — OnlineKhabar-style lead + ताजा अपडेट. */
 import { Link } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
 import { isHeadline, type Article } from "@/data/articles";
