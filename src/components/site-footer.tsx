@@ -16,26 +16,30 @@ import {
 } from "lucide-react";
 import type { AboutPage } from "@/lib/about";
 import { AppLogo } from "@/components/app-logo";
+import { useFeatures } from "@/components/features-provider";
+import type { FeatureKey } from "@/lib/features";
 import { toNpDigits } from "@/data/articles";
 
-const FOOTER_LINKS = [
+const FOOTER_LINKS: { to: string; label: string; icon: typeof Home; feature?: FeatureKey }[] = [
   { to: "/", label: "गृह", icon: Home },
-  { to: "/gallery", label: "ग्यालरी", icon: Camera },
-  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2 },
-  { to: "/blood", label: "रक्तदाता", icon: Droplet },
-  { to: "/members", label: "दर्ता सदस्य", icon: Users },
-  { to: "/market", label: "सेयर बजार", icon: LineChart },
-  { to: "/patro", label: "पात्रो", icon: CalendarDays },
-  { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays },
-  { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type },
-  { to: "/about", label: "हाम्रोबारे", icon: Info },
-  { to: "/privacy", label: "गोपनीयता", icon: Shield },
-] as const;
+  { to: "/gallery", label: "ग्यालरी", icon: Camera, feature: "gallery" },
+  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2, feature: "directory" },
+  { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" },
+  { to: "/members", label: "दर्ता सदस्य", icon: Users, feature: "members" },
+  { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" },
+  { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" },
+  { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays, feature: "dateConverter" },
+  { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type, feature: "preeti" },
+  { to: "/about", label: "हाम्रोबारे", icon: Info, feature: "about" },
+  { to: "/privacy", label: "गोपनीयता", icon: Shield, feature: "privacy" },
+];
 
 const chip =
   "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[#e8efe9] transition hover:border-[#ffd27a]/50 hover:bg-[#ffd27a]/10 hover:text-[#ffd27a]";
 
 export function SiteFooter({ about }: { about: AboutPage | null }) {
+  const features = useFeatures();
+  const links = FOOTER_LINKS.filter((l) => !l.feature || features[l.feature]);
   const blurb = String(about?.body || "कलैया, बारा र मधेशका स्थानीय समाचार।").slice(0, 160);
 
   return (
@@ -94,8 +98,8 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
         <div className="sm:col-span-3">
           <p className="text-[11px] font-bold tracking-[0.18em] text-mark">मेनु</p>
           <nav className="mt-3 flex flex-wrap gap-2 text-sm">
-            {FOOTER_LINKS.map(({ to, label, icon: Icon }) => (
-              <Link key={to} to={to} className={chip}>
+            {links.map(({ to, label, icon: Icon }) => (
+              <Link key={to} to={to as "/"} className={chip}>
                 <Icon className="size-3.5 shrink-0" />
                 {label}
               </Link>
