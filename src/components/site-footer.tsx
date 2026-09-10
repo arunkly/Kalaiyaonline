@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type { AboutPage } from "@/lib/about";
+import { AppLogo } from "@/components/app-logo";
 import { toNpDigits } from "@/data/articles";
 
 const FOOTER_LINKS = [
@@ -42,7 +43,7 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
       <div className="h-1 bg-gradient-to-r from-crimson via-mark to-crimson" />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:py-12">
         <div>
-          <img src="/logo-dark.jpg" alt="KalaiyaOnline.com" className="h-10 w-auto" />
+          <AppLogo variant="dark" className="h-10 w-auto" />
           <p className="mt-3 font-display text-lg">{about?.orgName || "KalaiyaOnline"}</p>
           <p className="mt-2 text-sm leading-relaxed text-white/70">{blurb}</p>
         </div>
