@@ -29,6 +29,13 @@ import {
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
+function defaultCategory(cats: DeskCategory[]) {
+  return cats.find((c) => c.slug === "local")?.slug
+    || cats.find((c) => c.slug !== "headline")?.slug
+    || cats[0]?.slug
+    || "local";
+}
+
 type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact" | "settings";
 type Tab = "posts" | "categories" | "trash";
 
@@ -67,8 +74,8 @@ function AdminPage() {
       setStories(live);
       setTrash(bin);
       setCats(sections);
-      if (sections[0] && !sections.some((c) => c.slug === category)) {
-        setCategory(sections[0].slug);
+      if (!sections.some((c) => c.slug === category)) {
+        setCategory(defaultCategory(sections));
       }
       setError(null);
     } catch (err) {
@@ -110,7 +117,7 @@ function AdminPage() {
     setTags("");
     setImageUrl("");
     setGallery([""]);
-    setCategory(cats[0]?.slug ?? "local");
+    setCategory(defaultCategory(cats));
   }
 
   function startEdit(s: DeskStory) {
