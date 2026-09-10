@@ -12,6 +12,7 @@ import {
   Search,
   Shield,
   Type,
+  Vote,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -36,6 +37,7 @@ const MORE_NAV = [
   { to: "/gallery", label: "ग्यालरी", icon: Camera, feature: "gallery" },
   { to: "/directory", label: "डाइरेक्ट्री", icon: Building2, feature: "directory" },
   { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" },
+  { to: "/election", label: "निर्वाचन", icon: Vote, feature: "election" },
   { to: "/chat", label: "च्याट", icon: MessageCircle, feature: "chat" },
 ] as const;
 
@@ -258,6 +260,7 @@ export function Shell({ children }: { children: ReactNode }) {
               { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" as const },
               { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" as const },
               { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" as const },
+              { to: "/election", label: "निर्वाचन", icon: Vote, feature: "election" as const },
               { to: "/about", label: "हाम्रोबारे", icon: Info, feature: "about" as const },
               { to: "/privacy", label: "गोपनीयता", icon: Shield, feature: "privacy" as const },
             ]
