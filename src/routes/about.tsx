@@ -4,6 +4,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { DEFAULT_ABOUT, getAboutPage, saveAboutPage, type AboutPage } from "@/lib/about";
 import { ContactForm } from "@/components/contact-form";
+import { AppLogo } from "@/components/app-logo";
 
 export const Route = createFileRoute("/about")({ component: AboutPageView });
 
@@ -26,7 +27,7 @@ function AboutPageView() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <img src="/logo.jpg" alt="KalaiyaOnline.com" className="mb-5 h-10 w-auto" />
+      <AppLogo className="mb-5 h-10 w-auto" />
       <p className="text-[11px] font-semibold tracking-[0.22em] text-crimson">KalaiyaOnline.Com</p>
       <h1 className="mt-2 font-display text-4xl font-normal">{page.title || "हाम्रोबारे"}</h1>
       {admin ? (
