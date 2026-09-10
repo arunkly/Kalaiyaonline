@@ -108,7 +108,7 @@ async function ensureThemeTable() {
   return sql;
 }
 
-export const getThemeSettings = createServerFn({ method: "GET" }).handler(async () => {
+export async function readThemeSettings(): Promise<ThemeSettings> {
   try {
     const sql = await ensureThemeTable();
     const rows = await sql<Partial<ThemeSettings>>`
@@ -120,7 +120,9 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
   } catch {
     return DEFAULT_THEME;
   }
-});
+}
+
+export const getThemeSettings = createServerFn({ method: "GET" }).handler(async () => readThemeSettings());
 
 export const saveThemeSettings = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
