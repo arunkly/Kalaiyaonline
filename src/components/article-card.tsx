@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { displayTitle, formatDate, timeAgoNp, toNpDigits, type Article } from "@/data/articles";
+import { displayTitle, formatDate, toNpDigits, type Article } from "@/data/articles";
 import { cn } from "@/lib/cn";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 
@@ -9,74 +9,13 @@ export function ArticleCard({
   rank,
 }: {
   article: Article;
-  variant?: "hero" | "standard" | "compact" | "text" | "ok-lead" | "ok-row" | "ok-thumb";
+  variant?: "hero" | "standard" | "compact" | "text";
   rank?: number;
 }) {
   const cats = useCategories();
   const label = categoryLabel(cats, article.category);
   const title = displayTitle(article);
   const date = formatDate(article.date);
-  const ago = timeAgoNp(article.date);
-
-  if (variant === "ok-lead") {
-    return (
-      <Link to="/article/$slug" params={{ slug: article.slug }} className="group block">
-        <div className="overflow-hidden bg-[#111]">
-          {article.imageUrl ? (
-            <img src={article.imageUrl} alt="" className="aspect-[16/9] w-full object-cover transition duration-500 group-hover:opacity-95" />
-          ) : (
-            <div className="aspect-[16/9] bg-gradient-to-br from-crimson to-crimson-deep" />
-          )}
-        </div>
-        <p className="mt-3 text-[12px] font-extrabold tracking-wide text-crimson">{label}</p>
-        <h2 className="mt-1 font-display text-[1.65rem] font-extrabold leading-[1.25] text-ink group-hover:text-crimson sm:text-4xl">
-          {title}
-        </h2>
-        {article.excerpt ? (
-          <p className="mt-2 line-clamp-2 text-[15px] leading-relaxed text-ink-soft">{article.excerpt}</p>
-        ) : null}
-        <p className="mt-2 text-xs text-muted">
-          {ago}
-          {article.location ? ` · ${article.location}` : ""}
-        </p>
-      </Link>
-    );
-  }
-
-  if (variant === "ok-row") {
-    return (
-      <Link
-        to="/article/$slug"
-        params={{ slug: article.slug }}
-        className="group flex gap-3 border-b border-line py-3 last:border-b-0"
-      >
-        <span className="w-[4.6rem] shrink-0 pt-0.5 text-[11px] font-semibold leading-snug text-muted">{ago}</span>
-        <h3 className="font-display text-[15px] font-bold leading-snug group-hover:text-crimson">{title}</h3>
-      </Link>
-    );
-  }
-
-  if (variant === "ok-thumb") {
-    return (
-      <Link
-        to="/article/$slug"
-        params={{ slug: article.slug }}
-        className="group flex gap-3 border-b border-line py-3 last:border-b-0"
-      >
-        {article.imageUrl ? (
-          <img src={article.imageUrl} alt="" className="h-[4.4rem] w-[5.6rem] shrink-0 object-cover" />
-        ) : (
-          <span className="h-[4.4rem] w-[5.6rem] shrink-0 bg-chip" />
-        )}
-        <span className="min-w-0">
-          <p className="text-[11px] font-bold text-crimson">{label}</p>
-          <h3 className="mt-0.5 line-clamp-3 font-display text-[15px] font-bold leading-snug group-hover:text-crimson">
-            {title}
-          </h3>
-        </span>
-      </Link>
-    );
-  }
 
   if (variant === "hero") {
     return (
@@ -110,16 +49,16 @@ export function ArticleCard({
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className="group block"
+        className="group overflow-hidden rounded-2xl border border-[#d7e4db] bg-white"
       >
         {article.imageUrl ? (
-          <img src={article.imageUrl} alt="" className="aspect-[16/10] w-full object-cover" />
-        ) : (
-          <div className="aspect-[16/10] bg-chip" />
-        )}
-        <p className="mt-2 text-[11px] font-bold text-crimson">{label}</p>
-        <h3 className="mt-1 font-display text-lg font-bold leading-snug group-hover:text-crimson">{title}</h3>
-        <p className="mt-1 text-xs text-muted">{ago}</p>
+          <img src={article.imageUrl} alt="" className="h-44 w-full object-cover" />
+        ) : null}
+        <div className="p-4">
+          <p className="text-[11px] font-semibold tracking-wider text-[#14934e]">{label}</p>
+          <h3 className="mt-1 font-display text-xl leading-snug group-hover:text-[#14934e]">{title}</h3>
+          <p className="mt-2 text-xs text-muted">{date}</p>
+        </div>
       </Link>
     );
   }
