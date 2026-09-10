@@ -1,6 +1,7 @@
 import { AdsDeskPanel } from "@/components/admin-ads-desk";
 import { SeoDeskPanel } from "@/components/admin-seo-desk";
 import { SettingsDeskPanel } from "@/components/admin-settings-desk";
+import { FeaturesDeskPanel } from "@/components/admin-features-desk";
 import { ThemeDeskPanel } from "@/components/admin-theme-desk";
 import { ContactDeskPanel } from "@/components/admin-contact-desk";
 import { BloodDeskPanel } from "@/components/admin-blood-desk";
@@ -38,7 +39,7 @@ function defaultCategory(cats: DeskCategory[]) {
     || "local";
 }
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact" | "seo" | "theme" | "settings";
+type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact" | "seo" | "theme" | "modules" | "settings";
 type Tab = "posts" | "categories" | "trash";
 
 const field =
@@ -283,6 +284,7 @@ function AdminPage() {
             ["contact", "सम्पर्क सन्देश"],
             ["seo", "SEO"],
             ["theme", "रूप / लोगो"],
+            ["modules", "मोड्युल"],
             ["settings", "सेटिङ"],
           ] as const
         ).map(([id, label]) => (
@@ -308,6 +310,7 @@ function AdminPage() {
       {desk === "contact" ? <ContactDeskPanel /> : null}
       {desk === "seo" ? <SeoDeskPanel /> : null}
       {desk === "theme" ? <ThemeDeskPanel /> : null}
+      {desk === "modules" ? <FeaturesDeskPanel /> : null}
       {desk === "settings" ? <SettingsDeskPanel /> : null}
       {desk === "news" ? (
         <>
