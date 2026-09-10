@@ -38,8 +38,10 @@ function Home() {
   }, []);
 
   const all = useMemo(() => [...edition].sort((a, b) => (a.date < b.date ? 1 : -1)), [edition]);
-  const hero = all.find((a) => isHeadline(a.category));
-  const pool = all.filter((a) => a.slug !== hero?.slug && !isHeadline(a.category));
+  const headlines = all.filter((a) => isHeadline(a.category));
+  const hero = headlines[0];
+  const moreHeadlines = headlines.slice(1, 6);
+  const pool = all.filter((a) => !isHeadline(a.category));
 
   const orderedCats = useMemo(() => {
     const rest = cats.filter((c) => c.slug !== "headline" && !SECTION_ORDER.includes(c.slug));
@@ -66,6 +68,22 @@ function Home() {
           <p className="font-display text-3xl">हेडलाइन छैन</p>
         </div>
       )}
+
+      {moreHeadlines.length ? (
+        <section>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <p className="font-display text-2xl">थप हेडलाइन</p>
+            <Link to="/category/$slug" params={{ slug: "headline" }} className="text-sm font-semibold text-[#14934e]">
+              सबै
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {moreHeadlines.map((a) => (
+              <ArticleCard key={a.slug} article={a} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-10 lg:col-span-8">
