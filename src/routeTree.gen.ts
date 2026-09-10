@@ -38,6 +38,9 @@ import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as MemberIdRouteImport } from './routes/member.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ElectionLocalIdRouteImport } from './routes/election.local.$id'
+import { Route as ShareImageArticleSlugRouteImport } from './routes/share-image.article.$slug'
+import { Route as ShareImageDirectoryIdRouteImport } from './routes/share-image.directory.$id'
+import { Route as ShareImageGallerySlugRouteImport } from './routes/share-image.gallery.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -184,6 +187,21 @@ const ElectionLocalIdRoute = ElectionLocalIdRouteImport.update({
   path: '/local/$id',
   getParentRoute: () => ElectionRoute,
 } as any)
+const ShareImageArticleSlugRoute = ShareImageArticleSlugRouteImport.update({
+  id: '/share-image/article/$slug',
+  path: '/share-image/article/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareImageDirectoryIdRoute = ShareImageDirectoryIdRouteImport.update({
+  id: '/share-image/directory/$id',
+  path: '/share-image/directory/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareImageGallerySlugRoute = ShareImageGallerySlugRouteImport.update({
+  id: '/share-image/gallery/$slug',
+  path: '/share-image/gallery/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -215,6 +233,9 @@ export interface FileRoutesByFullPath {
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
+  '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
+  '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -246,6 +267,9 @@ export interface FileRoutesByTo {
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
+  '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
+  '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -278,6 +302,9 @@ export interface FileRoutesById {
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
+  '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
+  '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -311,6 +338,9 @@ export interface FileRouteTypes {
     | '/member/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/share-image/article/$slug'
+    | '/share-image/directory/$id'
+    | '/share-image/gallery/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -342,6 +372,9 @@ export interface FileRouteTypes {
     | '/member/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/share-image/article/$slug'
+    | '/share-image/directory/$id'
+    | '/share-image/gallery/$slug'
   id:
     | '__root__'
     | '/'
@@ -373,6 +406,9 @@ export interface FileRouteTypes {
     | '/member/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/share-image/article/$slug'
+    | '/share-image/directory/$id'
+    | '/share-image/gallery/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -400,6 +436,9 @@ export interface RootRouteChildren {
   CategorySlugRoute: typeof CategorySlugRoute
   MemberIdRoute: typeof MemberIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ShareImageArticleSlugRoute: typeof ShareImageArticleSlugRoute
+  ShareImageDirectoryIdRoute: typeof ShareImageDirectoryIdRoute
+  ShareImageGallerySlugRoute: typeof ShareImageGallerySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -607,6 +646,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ElectionLocalIdRouteImport
       parentRoute: typeof ElectionRoute
     }
+    '/share-image/article/$slug': {
+      id: '/share-image/article/$slug'
+      path: '/share-image/article/$slug'
+      fullPath: '/share-image/article/$slug'
+      preLoaderRoute: typeof ShareImageArticleSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share-image/directory/$id': {
+      id: '/share-image/directory/$id'
+      path: '/share-image/directory/$id'
+      fullPath: '/share-image/directory/$id'
+      preLoaderRoute: typeof ShareImageDirectoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share-image/gallery/$slug': {
+      id: '/share-image/gallery/$slug'
+      path: '/share-image/gallery/$slug'
+      fullPath: '/share-image/gallery/$slug'
+      preLoaderRoute: typeof ShareImageGallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -682,6 +742,9 @@ const rootRouteChildren: RootRouteChildren = {
   CategorySlugRoute: CategorySlugRoute,
   MemberIdRoute: MemberIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ShareImageArticleSlugRoute: ShareImageArticleSlugRoute,
+  ShareImageDirectoryIdRoute: ShareImageDirectoryIdRoute,
+  ShareImageGallerySlugRoute: ShareImageGallerySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
