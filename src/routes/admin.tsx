@@ -2,6 +2,7 @@ import { AdsDeskPanel } from "@/components/admin-ads-desk";
 import { SeoDeskPanel } from "@/components/admin-seo-desk";
 import { SettingsDeskPanel } from "@/components/admin-settings-desk";
 import { FeaturesDeskPanel } from "@/components/admin-features-desk";
+import { ElectionDeskPanel } from "@/components/admin-election-desk";
 import { ThemeDeskPanel } from "@/components/admin-theme-desk";
 import { ContactDeskPanel } from "@/components/admin-contact-desk";
 import { BloodDeskPanel } from "@/components/admin-blood-desk";
@@ -39,7 +40,7 @@ function defaultCategory(cats: DeskCategory[]) {
     || "local";
 }
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "users" | "ads" | "contact" | "seo" | "theme" | "modules" | "settings";
+type Desk = "news" | "gallery" | "directory" | "blood" | "election" | "users" | "ads" | "contact" | "seo" | "theme" | "modules" | "settings";
 type Tab = "posts" | "categories" | "trash";
 
 const field =
@@ -279,6 +280,7 @@ function AdminPage() {
             ["gallery", "ग्यालरी डेस्क"],
             ["directory", "डाइरेक्ट्री डेस्क"],
             ["blood", "रक्तदाता डेस्क"],
+            ["election", "निर्वाचन डेस्क"],
             ["users", "प्रयोगकर्ता"],
             ["ads", "विज्ञापन डेस्क"],
             ["contact", "सम्पर्क सन्देश"],
@@ -305,6 +307,7 @@ function AdminPage() {
       {desk === "gallery" ? <GalleryDeskPanel /> : null}
       {desk === "directory" ? <DirectoryDeskPanel /> : null}
       {desk === "blood" ? <BloodDeskPanel /> : null}
+      {desk === "election" ? <ElectionDeskPanel /> : null}
       {desk === "users" ? <UsersDeskPanel /> : null}
       {desk === "ads" ? <AdsDeskPanel /> : null}
       {desk === "contact" ? <ContactDeskPanel /> : null}
