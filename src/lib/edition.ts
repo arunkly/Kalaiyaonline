@@ -6,8 +6,9 @@ import {
   type DeskStory,
 } from "@/lib/desk";
 
-function parseGalleryField(raw?: string) {
-  if (!raw) return [] as string[];
+function parseGalleryField(raw?: string | string[] | null) {
+  if (Array.isArray(raw)) return raw.filter((v) => typeof v === "string" && v.trim());
+  if (!raw || typeof raw !== "string") return [] as string[];
   try {
     const parsed = JSON.parse(raw) as unknown;
     return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string" && Boolean(v.trim())) : [];
@@ -22,12 +23,12 @@ export function deskToArticle(s: DeskStory): Article {
     typeof created === "string" && created.length >= 10
       ? created.slice(0, 10)
       : new Date().toISOString().slice(0, 10);
-  const bodyText = typeof s.body === "string" ? s.body : "";
+  const bodyText = typeof s.body === "string" ? s.body : String(s.body ?? "");
   const tagText = typeof s.tags === "string" ? s.tags : "";
   return {
-    slug: s.slug,
-    title: s.title,
-    excerpt: s.excerpt ?? "",
+    slug: String(s.slug || ""),
+    title: String(s.title || ""),
+    excerpt: String(s.excerpt ?? ""),
     body: bodyText
       .split(/\n{2,}/)
       .map((p) => p.trim())
@@ -39,7 +40,7 @@ export function deskToArticle(s: DeskStory): Article {
       .filter(Boolean),
     author: "K O",
     date,
-    location: s.location || "कलैया",
+    location: String(s.location || "कलैया"),
     imageUrl: s.imageUrl || undefined,
     gallery: parseGalleryField(s.galleryUrls),
     featured: true,
@@ -53,7 +54,17 @@ export function useEdition() {
 
   useEffect(() => {
     void listPublishedStories()
-      .then((rows) => setExtra(rows.map(deskToArticle)))
+      .then((rows) =>
+        setExtra(
+          (rows ?? []).flatMap((row) => {
+            try {
+              return [deskToArticle(row)];
+            } catch {
+              return [];
+            }
+          }),
+        ),
+      )
       .catch(() => setExtra([]));
   }, []);
 
