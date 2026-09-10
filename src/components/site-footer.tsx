@@ -35,7 +35,7 @@ const chip =
   "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[#e8efe9] transition hover:border-[#ffd27a]/50 hover:bg-[#ffd27a]/10 hover:text-[#ffd27a]";
 
 export function SiteFooter({ about }: { about: AboutPage | null }) {
-  const blurb = (about?.body || "कलैया, बारा र मधेशका स्थानीय समाचार।").slice(0, 160);
+  const blurb = String(about?.body || "कलैया, बारा र मधेशका स्थानीय समाचार।").slice(0, 160);
 
   return (
     <footer className="border-t border-line bg-[#10261a] text-[#e8efe9]">
@@ -68,8 +68,8 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
               </p>
             ) : null}
             {about?.website ? (
-              <a href={about.website} className="block hover:text-mark">
-                {about.website.replace(/^https?:\/\//, "")}
+              <a href={String(about.website)} className="block hover:text-mark">
+                {String(about.website).replace(/^https?:\/\//, "")}
               </a>
             ) : null}
             {about?.facebook ? (
