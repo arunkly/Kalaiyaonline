@@ -13,6 +13,7 @@ import {
   Shield,
   Type,
   Users,
+  Vote,
 } from "lucide-react";
 import type { AboutPage } from "@/lib/about";
 import { AppLogo } from "@/components/app-logo";
@@ -25,6 +26,7 @@ const FOOTER_LINKS: { to: string; label: string; icon: typeof Home; feature?: Fe
   { to: "/gallery", label: "ग्यालरी", icon: Camera, feature: "gallery" },
   { to: "/directory", label: "डाइरेक्ट्री", icon: Building2, feature: "directory" },
   { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" },
+  { to: "/election", label: "निर्वाचन", icon: Vote, feature: "election" },
   { to: "/members", label: "दर्ता सदस्य", icon: Users, feature: "members" },
   { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" },
   { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" },
