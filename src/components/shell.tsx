@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { AdSlot } from "@/components/ad-slot";
+import { AppLogo } from "@/components/app-logo";
 import { NoticeBell } from "@/components/notice-bell";
 import { SiteFooter } from "@/components/site-footer";
 import { MarketTicker } from "@/components/market-ticker";
@@ -67,7 +68,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-line bg-white shadow-sm">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-3 py-2 sm:px-4">
           <Link to="/" className="shrink-0">
-            <img src="/logo.jpg" alt="KalaiyaOnline.com" className="h-8 w-auto sm:h-10" />
+            <AppLogo className="h-8 w-auto sm:h-10" />
           </Link>
 
           <form
