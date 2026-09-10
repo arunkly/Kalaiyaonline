@@ -98,6 +98,16 @@ export function formatDate(iso: string | Date | null | undefined) {
   return `${toNpDigits(d ?? 1)} ${month} ${toNpDigits(y ?? 2026)}`;
 }
 
-export function displayTitle(article: { title: string; titleNp?: string }) {
-  return article.titleNp ?? article.title;
+export function timeAgoNp(iso: string | Date | null | undefined) {
+  if (!iso) return "";
+  const t = iso instanceof Date ? iso.getTime() : new Date(iso).getTime();
+  if (!Number.isFinite(t)) return formatDate(iso);
+  const min = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  if (min < 1) return "अहिले";
+  if (min < 60) return `${toNpDigits(min)} मिनेट अगाडि`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${toNpDigits(h)} घण्टा अगाडि`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${toNpDigits(d)} दिन अगाडि`;
+  return formatDate(iso);
 }
