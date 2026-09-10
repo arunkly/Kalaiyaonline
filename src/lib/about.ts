@@ -16,28 +16,75 @@ export type AboutPage = {
   extraNote: string;
 };
 
-export const getAboutPage = createServerFn({ method: "GET" }).handler(async () => {
+export const DEFAULT_ABOUT: AboutPage = {
+  title: "हाम्रोबारे",
+  body: "कलैयाअनलाइनले कलैया, बारा, पर्सा र तराई मधेशका स्थानीय समाचार समेट्छ।",
+  phone: "",
+  email: "",
+  address: "कलैया, बारा, मधेश",
+  facebook: "",
+  website: "https://kalaiyaonline.com",
+  orgName: "KalaiyaOnline",
+  registrationNo: "",
+  extraNote: "",
+};
+
+function text(value: unknown, fallback = "") {
+  if (value == null) return fallback;
+  return String(value);
+}
+
+function normalize(row: Partial<AboutPage> | null | undefined): AboutPage {
+  return {
+    title: text(row?.title, DEFAULT_ABOUT.title) || DEFAULT_ABOUT.title,
+    body: text(row?.body, DEFAULT_ABOUT.body),
+    phone: text(row?.phone),
+    email: text(row?.email),
+    address: text(row?.address, DEFAULT_ABOUT.address),
+    facebook: text(row?.facebook),
+    website: text(row?.website, DEFAULT_ABOUT.website),
+    orgName: text(row?.orgName, DEFAULT_ABOUT.orgName) || DEFAULT_ABOUT.orgName,
+    registrationNo: text(row?.registrationNo),
+    extraNote: text(row?.extraNote),
+  };
+}
+
+async function ensureAboutTable() {
   const { getSql } = await import("@/lib/db");
   const sql = await getSql();
-  const rows = await sql<AboutPage>`
-    select title, body, phone, email, address, facebook, website,
-           org_name as "orgName", registration_no as "registrationNo", extra_note as "extraNote"
-    from about_page where id = 1 limit 1
+  await sql`
+    create table if not exists about_page (
+      id integer primary key,
+      title text not null default 'हाम्रोबारे',
+      body text not null default '',
+      phone text not null default '',
+      email text not null default '',
+      address text not null default '',
+      facebook text not null default '',
+      website text not null default 'https://kalaiyaonline.com',
+      org_name text not null default 'KalaiyaOnline',
+      registration_no text not null default '',
+      extra_note text not null default ''
+    )
   `;
-  return (
-    rows[0] ?? {
-      title: "हाम्रोबारे",
-      body: "",
-      phone: "",
-      email: "",
-      address: "",
-      facebook: "",
-      website: "https://kalaiyaonline.com",
-      orgName: "KalaiyaOnline",
-      registrationNo: "",
-      extraNote: "",
-    }
-  );
+  await sql`alter table about_page add column if not exists org_name text not null default 'KalaiyaOnline'`;
+  await sql`alter table about_page add column if not exists registration_no text not null default ''`;
+  await sql`alter table about_page add column if not exists extra_note text not null default ''`;
+  return sql;
+}
+
+export const getAboutPage = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const sql = await ensureAboutTable();
+    const rows = await sql<Partial<AboutPage>>`
+      select title, body, phone, email, address, facebook, website,
+             org_name as "orgName", registration_no as "registrationNo", extra_note as "extraNote"
+      from about_page where id = 1 limit 1
+    `;
+    return normalize(rows[0]);
+  } catch {
+    return DEFAULT_ABOUT;
+  }
 });
 
 export const saveAboutPage = createServerFn({ method: "POST" })
@@ -62,8 +109,7 @@ export const saveAboutPage = createServerFn({ method: "POST" })
     if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
       throw new Error("Forbidden");
     }
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
+    const sql = await ensureAboutTable();
     await sql`
       insert into about_page (id, title, body, phone, email, address, facebook, website, org_name, registration_no, extra_note)
       values (
