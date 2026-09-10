@@ -5,27 +5,34 @@ import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { ShareBar } from "@/components/share-bar";
 import { toNpDigits } from "@/data/articles";
 import { getGalleryPost, type GalleryPhoto, type GalleryPost } from "@/lib/gallery-desk";
-import { absoluteUrl, siteOrigin } from "@/lib/site-url";
 import { incrementView } from "@/lib/views";
 
 export const Route = createFileRoute("/gallery/$slug")({
   loader: ({ params }) => getGalleryPost({ data: { slug: params.slug } }),
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const post = loaderData;
-    const origin = siteOrigin();
-    const title = post?.title ? `${post.title} | KalaiyaOnline` : "KalaiyaOnline";
-    const image = absoluteUrl(post?.coverUrl || post?.photos?.[0]?.imageUrl || "/og.jpg", origin);
+    const origin = "https://www.kalaiyaonline.com";
+    const slug = post?.slug || params.slug;
+    const headline = post?.title?.trim() || "KalaiyaOnline";
+    const image = post?.coverUrl || post?.photos?.[0]?.imageUrl
+      ? `${origin}/share-image/gallery/${encodeURIComponent(slug)}`
+      : `${origin}/og.jpg`;
+    const url = `${origin}/gallery/${encodeURIComponent(slug)}`;
     return {
       meta: [
-        { title },
+        { title: post?.title ? `${post.title} | KalaiyaOnline` : "KalaiyaOnline" },
         { property: "og:type", content: "article" },
-        { property: "og:title", content: post?.title || "KalaiyaOnline" },
+        { property: "og:site_name", content: "KalaiyaOnline" },
+        { property: "og:title", content: headline },
         { property: "og:description", content: post?.place || "ग्यालरी" },
         { property: "og:image", content: image },
-        { property: "og:url", content: `${origin}/gallery/${post?.slug ?? ""}` },
+        { property: "og:image:secure_url", content: image },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: headline },
         { name: "twitter:image", content: image },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: GalleryPostPage,
