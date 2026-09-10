@@ -17,12 +17,14 @@ import { Route as BloodRouteImport } from './routes/blood'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DateConverterRouteImport } from './routes/date-converter'
 import { Route as DirectoryRouteImport } from './routes/directory'
+import { Route as ElectionRouteImport } from './routes/election'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MarketRouteImport } from './routes/market'
 import { Route as MembersRouteImport } from './routes/members'
 import { Route as PatroRouteImport } from './routes/patro'
+import { Route as PreetiRouteImport } from './routes/preeti'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SavedRouteImport } from './routes/saved'
@@ -31,9 +33,11 @@ import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as DirectoryIdRouteImport } from './routes/directory.$id'
+import { Route as ElectionIdRouteImport } from './routes/election.$id'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as MemberIdRouteImport } from './routes/member.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ElectionLocalIdRouteImport } from './routes/election.local.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,6 +79,11 @@ const DirectoryRoute = DirectoryRouteImport.update({
   path: '/directory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ElectionRoute = ElectionRouteImport.update({
+  id: '/election',
+  path: '/election',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -103,6 +112,11 @@ const MembersRoute = MembersRouteImport.update({
 const PatroRoute = PatroRouteImport.update({
   id: '/patro',
   path: '/patro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreetiRoute = PreetiRouteImport.update({
+  id: '/preeti',
+  path: '/preeti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -145,6 +159,11 @@ const DirectoryIdRoute = DirectoryIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DirectoryRoute,
 } as any)
+const ElectionIdRoute = ElectionIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ElectionRoute,
+} as any)
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -160,6 +179,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ElectionLocalIdRoute = ElectionLocalIdRouteImport.update({
+  id: '/local/$id',
+  path: '/local/$id',
+  getParentRoute: () => ElectionRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -170,12 +194,14 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
+  '/election': typeof ElectionRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
   '/market': typeof MarketRoute
   '/members': typeof MembersRoute
   '/patro': typeof PatroRoute
+  '/preeti': typeof PreetiRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -184,9 +210,11 @@ export interface FileRoutesByFullPath {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
+  '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/election/local/$id': typeof ElectionLocalIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,12 +225,14 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
+  '/election': typeof ElectionRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
   '/market': typeof MarketRoute
   '/members': typeof MembersRoute
   '/patro': typeof PatroRoute
+  '/preeti': typeof PreetiRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -211,9 +241,11 @@ export interface FileRoutesByTo {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
+  '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/election/local/$id': typeof ElectionLocalIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -225,12 +257,14 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
+  '/election': typeof ElectionRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
   '/market': typeof MarketRoute
   '/members': typeof MembersRoute
   '/patro': typeof PatroRoute
+  '/preeti': typeof PreetiRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
@@ -239,9 +273,11 @@ export interface FileRoutesById {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
+  '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/election/local/$id': typeof ElectionLocalIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -254,12 +290,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/date-converter'
     | '/directory'
+    | '/election'
     | '/forgot-password'
     | '/gallery'
     | '/login'
     | '/market'
     | '/members'
     | '/patro'
+    | '/preeti'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -268,9 +306,11 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$slug'
     | '/directory/$id'
+    | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
     | '/api/auth/$'
+    | '/election/local/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -281,12 +321,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/date-converter'
     | '/directory'
+    | '/election'
     | '/forgot-password'
     | '/gallery'
     | '/login'
     | '/market'
     | '/members'
     | '/patro'
+    | '/preeti'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -295,9 +337,11 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$slug'
     | '/directory/$id'
+    | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
     | '/api/auth/$'
+    | '/election/local/$id'
   id:
     | '__root__'
     | '/'
@@ -308,12 +352,14 @@ export interface FileRouteTypes {
     | '/chat'
     | '/date-converter'
     | '/directory'
+    | '/election'
     | '/forgot-password'
     | '/gallery'
     | '/login'
     | '/market'
     | '/members'
     | '/patro'
+    | '/preeti'
     | '/privacy'
     | '/reset-password'
     | '/saved'
@@ -322,9 +368,11 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$slug'
     | '/directory/$id'
+    | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
     | '/api/auth/$'
+    | '/election/local/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -336,12 +384,14 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DateConverterRoute: typeof DateConverterRoute
   DirectoryRoute: typeof DirectoryRouteWithChildren
+  ElectionRoute: typeof ElectionRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GalleryRoute: typeof GalleryRouteWithChildren
   LoginRoute: typeof LoginRoute
   MarketRoute: typeof MarketRoute
   MembersRoute: typeof MembersRoute
   PatroRoute: typeof PatroRoute
+  PreetiRoute: typeof PreetiRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SavedRoute: typeof SavedRoute
@@ -410,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/election': {
+      id: '/election'
+      path: '/election'
+      fullPath: '/election'
+      preLoaderRoute: typeof ElectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -450,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/patro'
       fullPath: '/patro'
       preLoaderRoute: typeof PatroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preeti': {
+      id: '/preeti'
+      path: '/preeti'
+      fullPath: '/preeti'
+      preLoaderRoute: typeof PreetiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -508,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectoryIdRouteImport
       parentRoute: typeof DirectoryRoute
     }
+    '/election/$id': {
+      id: '/election/$id'
+      path: '/$id'
+      fullPath: '/election/$id'
+      preLoaderRoute: typeof ElectionIdRouteImport
+      parentRoute: typeof ElectionRoute
+    }
     '/gallery/$slug': {
       id: '/gallery/$slug'
       path: '/$slug'
@@ -528,6 +599,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/election/local/$id': {
+      id: '/election/local/$id'
+      path: '/local/$id'
+      fullPath: '/election/local/$id'
+      preLoaderRoute: typeof ElectionLocalIdRouteImport
+      parentRoute: typeof ElectionRoute
     }
   }
 }
@@ -554,6 +632,20 @@ const DirectoryRouteWithChildren = DirectoryRoute._addFileChildren(
   DirectoryRouteChildren,
 )
 
+interface ElectionRouteChildren {
+  ElectionIdRoute: typeof ElectionIdRoute
+  ElectionLocalIdRoute: typeof ElectionLocalIdRoute
+}
+
+const ElectionRouteChildren: ElectionRouteChildren = {
+  ElectionIdRoute: ElectionIdRoute,
+  ElectionLocalIdRoute: ElectionLocalIdRoute,
+}
+
+const ElectionRouteWithChildren = ElectionRoute._addFileChildren(
+  ElectionRouteChildren,
+)
+
 interface GalleryRouteChildren {
   GallerySlugRoute: typeof GallerySlugRoute
 }
@@ -574,12 +666,14 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DateConverterRoute: DateConverterRoute,
   DirectoryRoute: DirectoryRouteWithChildren,
+  ElectionRoute: ElectionRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GalleryRoute: GalleryRouteWithChildren,
   LoginRoute: LoginRoute,
   MarketRoute: MarketRoute,
   MembersRoute: MembersRoute,
   PatroRoute: PatroRoute,
+  PreetiRoute: PreetiRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SavedRoute: SavedRoute,
