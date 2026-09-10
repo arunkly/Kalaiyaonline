@@ -6,6 +6,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
 import { ensureAdminReady } from "@/lib/desk";
 import { sendWelcomeMail } from "@/lib/mail";
+import { AppLogo } from "@/components/app-logo";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -69,7 +70,7 @@ function Login() {
 
   return (
     <div className="mx-auto max-w-md rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">
-      <img src="/logo.jpg" alt="KalaiyaOnline.com" className="h-9 w-auto" />
+      <AppLogo className="h-9 w-auto" />
       <h1 className="mt-5 font-display text-4xl font-bold">
         {mode === "up" ? "सदस्य बन्नुहोस्" : "लगइन"}
       </h1>
@@ -150,7 +151,7 @@ function Login() {
             {busy
               ? mode === "up"
                 ? "खाता बन्दै…"
-                : "लगइन हुࠖदै…"
+                : "लगइन हुँदै…"
               : mode === "up"
                 ? "सदस्य बन्नुहोस्"
                 : "लगइन"}
