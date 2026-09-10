@@ -69,7 +69,7 @@ async function ensureSeoTable() {
   return sql;
 }
 
-export const getSeoSettings = createServerFn({ method: "GET" }).handler(async () => {
+export async function readSeoSettings(): Promise<SeoSettings> {
   try {
     const sql = await ensureSeoTable();
     const rows = await sql<Partial<SeoSettings>>`
@@ -82,7 +82,9 @@ export const getSeoSettings = createServerFn({ method: "GET" }).handler(async ()
   } catch {
     return DEFAULT_SEO;
   }
-});
+}
+
+export const getSeoSettings = createServerFn({ method: "GET" }).handler(async () => readSeoSettings());
 
 export const saveSeoSettings = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
