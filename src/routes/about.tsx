@@ -2,29 +2,33 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { isAdminEmail } from "@/lib/admin";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { getAboutPage, saveAboutPage, type AboutPage } from "@/lib/about";
+import { DEFAULT_ABOUT, getAboutPage, saveAboutPage, type AboutPage } from "@/lib/about";
 import { ContactForm } from "@/components/contact-form";
 
 export const Route = createFileRoute("/about")({ component: AboutPageView });
 
+function siteHost(url: string) {
+  return String(url || "").replace(/^https?:\/\//, "");
+}
+
 function AboutPageView() {
   const { user } = useCurrentUserState();
   const admin = isAdminEmail(user?.primaryEmail);
-  const [page, setPage] = useState<AboutPage | null>(null);
+  const [page, setPage] = useState<AboutPage>(DEFAULT_ABOUT);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void getAboutPage().then(setPage);
+    void getAboutPage()
+      .then((next) => setPage(next ?? DEFAULT_ABOUT))
+      .catch(() => setPage(DEFAULT_ABOUT));
   }, []);
-
-  if (!page) return <div className="h-40 animate-pulse rounded-2xl bg-chip" />;
 
   return (
     <div className="mx-auto max-w-2xl">
       <img src="/logo.jpg" alt="KalaiyaOnline.com" className="mb-5 h-10 w-auto" />
       <p className="text-[11px] font-semibold tracking-[0.22em] text-crimson">KalaiyaOnline.Com</p>
-      <h1 className="mt-2 font-display text-4xl font-normal">{page.title}</h1>
+      <h1 className="mt-2 font-display text-4xl font-normal">{page.title || "हाम्रोबारे"}</h1>
       {admin ? (
         <button
           type="button"
@@ -113,8 +117,8 @@ function AboutPageView() {
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">साइट</dt>
                 <dd>
-                  <a className="text-crimson hover:underline" href={page.website}>
-                    {page.website.replace(/^https?:\/\//, "")}
+                  <a className="text-crimson hover:underline" href={String(page.website)}>
+                    {siteHost(page.website)}
                   </a>
                 </dd>
               </div>
@@ -123,7 +127,7 @@ function AboutPageView() {
               <div className="rounded-md border border-line bg-surface px-4 py-3">
                 <dt className="text-muted">फेसबुक</dt>
                 <dd>
-                  <a className="text-crimson hover:underline" href={page.facebook}>
+                  <a className="text-crimson hover:underline" href={String(page.facebook)}>
                     फेसबुक पेज
                   </a>
                 </dd>
