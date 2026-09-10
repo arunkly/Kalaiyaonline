@@ -138,11 +138,28 @@ function AdminPage() {
     try {
       if (editingId) {
         await updateStory({
-          data: { id: editingId, title, body, category, tags, imageUrl, gallery: gallery.filter((u) => u.trim()) },
+          data: {
+            id: editingId,
+            title,
+            body,
+            category,
+            tags,
+            imageUrl,
+            location: location || "कलैया",
+            gallery: gallery.filter((u) => u.trim()),
+          },
         });
       } else {
         await createStory({
-          data: { title, body, category, tags, imageUrl, gallery: gallery.filter((u) => u.trim()) },
+          data: {
+            title,
+            body,
+            category,
+            tags,
+            imageUrl,
+            location: location || "कलैया",
+            gallery: gallery.filter((u) => u.trim()),
+          },
         });
       }
       resetForm();
@@ -306,7 +323,7 @@ function AdminPage() {
             <label className="block text-sm font-medium">
               फिचर्ड तस्बिर (बाह्य लिंक)
               <input
-                type="url"
+                type="text"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://..."
@@ -325,7 +342,7 @@ function AdminPage() {
               {gallery.map((url, i) => (
                 <div key={i} className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     value={url}
                     placeholder="https://..."
                     onChange={(e) =>
