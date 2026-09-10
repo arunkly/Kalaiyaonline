@@ -5,7 +5,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 
 const storyInput = z.object({
   title: z.string().trim().min(2, "शीर्षक लेख्नुहोस्।").max(180),
-  excerpt: z.string().max(400).optional(),
+  excerpt: z.string().max(2000).optional(),
   body: z.string().trim().min(8, "विवरण लेख्नुहोस्।").max(20000),
   category: z.string().min(1).max(40),
   location: z.string().max(80).optional(),
@@ -37,56 +37,59 @@ export type DeskCategory = {
   label: string;
 };
 
-function parseGallery(raw?: string | string[] | null) {
-  if (Array.isArray(raw)) return raw.filter(Boolean);
-  if (!raw) return [] as string[];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string" && v.trim().length > 0) : [];
-  } catch {
-    return [];
-  }
-}
-
 function autoExcerpt(body: string, excerpt?: string) {
   const given = excerpt?.trim();
-  if (given) return given.slice(0, 400);
+  if (given) return given.slice(0, 2000);
   return body.replace(/\s+/g, " ").trim().slice(0, 180);
 }
 
-function cleanImageUrl(raw?: string) {
+function parseImageUrl(raw?: string) {
   const value = raw?.trim() ?? "";
   if (!value) return "";
   const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
   try {
     const parsed = new URL(candidate);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error("bad");
-    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
     return parsed.toString();
   } catch {
-    throw new Error("तस्बिरको लिंक सही छैन।");
+    return "";
   }
 }
+
+function cleanImageUrl(raw?: string) {
+  const value = raw?.trim() ?? "";
+  if (!value) return "";
+  const parsed = parseImageUrl(value);
+  if (!parsed) throw new Error("तस्बिरको लिंक सही छैन।");
+  return parsed;
+}
+
+function galleryJson(urls?: string[]) {
+  return JSON.stringify((urls ?? []).map((url) => parseImageUrl(url)).filter(Boolean));
+}
+
+let deskEnsured: Promise<void> | null = null;
 
 async function getDeskSql() {
   const { getSql } = await import("@/lib/db");
   const sql = await getSql();
-  await sql`alter table desk_stories add column if not exists image_url text not null default ''`;
-  await sql`alter table desk_stories add column if not exists gallery_urls text not null default '[]'`;
-  await sql`alter table desk_stories add column if not exists deleted_at timestamptz`;
-  await sql`alter table desk_stories add column if not exists updated_at timestamptz not null default now()`;
+  if (!deskEnsured) {
+    deskEnsured = (async () => {
+      await sql`alter table desk_stories add column if not exists image_url text not null default ''`;
+      await sql`alter table desk_stories add column if not exists gallery_urls text not null default '[]'`;
+      await sql`alter table desk_stories add column if not exists deleted_at timestamptz`;
+      await sql`alter table desk_stories add column if not exists updated_at timestamptz not null default now()`;
+    })().catch((err) => {
+      deskEnsured = null;
+      throw err;
+    });
+  }
+  await deskEnsured;
   return sql;
 }
 
-function slugify(title: string) {
-  const base = title
-    .toLowerCase()
-    .replace(/[^\w\u0900-\u097F]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
-  const stamp = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-  return `${base || "story"}-${stamp}`;
+function slugify() {
+  return `news-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function slugifyCat(label: string) {
@@ -99,10 +102,13 @@ function slugifyCat(label: string) {
 }
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    throw new Error("Forbidden");
+  const { getSql } = await import("@/lib/db");
+  const sql = await getSql();
+  const rows = await sql<{ email: string }>`
+    select email from "user" where id = ${userId} limit 1
+  `;
+  if (!isAdminEmail(rows[0]?.email)) {
+    throw new Error("एडमिन खाताले मात्र समाचार राख्न सकिन्छ।");
   }
 }
 
@@ -116,13 +122,23 @@ export const ensureAdminReady = createServerFn({ method: "POST" }).handler(
 export const listPublishedStories = createServerFn({ method: "GET" }).handler(
   async () => {
     const sql = await getDeskSql();
-    return sql<DeskStory>`
-      select id, slug, title, excerpt, body, category, location, tags,
-             image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
-      from desk_stories
-      where published = true and deleted_at is null
-      order by created_at desc
-    `;
+    try {
+      return await sql<DeskStory>`
+        select id, slug, title, excerpt, body, category, location, tags,
+               image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
+        from desk_stories
+        where published = true and deleted_at is null
+        order by created_at desc
+      `;
+    } catch {
+      return sql<DeskStory>`
+        select id, slug, title, excerpt, body, category, location, tags,
+               image_url as "imageUrl", published, created_at as "createdAt"
+        from desk_stories
+        where published = true
+        order by created_at desc
+      `;
+    }
   },
 );
 
@@ -130,19 +146,31 @@ export const getPublishedStory = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1).max(120) }))
   .handler(async ({ data }) => {
     const sql = await getDeskSql();
-    const rows = await sql<DeskStory>`
-      select id, slug, title, excerpt, body, category, location, tags,
-             image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
-      from desk_stories
-      where slug = ${data.slug} and published = true and deleted_at is null
-      limit 1
-    `;
-    return rows[0] ?? null;
+    try {
+      const rows = await sql<DeskStory>`
+        select id, slug, title, excerpt, body, category, location, tags,
+               image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
+        from desk_stories
+        where slug = ${data.slug} and published = true and deleted_at is null
+        limit 1
+      `;
+      return rows[0] ?? null;
+    } catch {
+      const rows = await sql<DeskStory>`
+        select id, slug, title, excerpt, body, category, location, tags,
+               image_url as "imageUrl", published, created_at as "createdAt"
+        from desk_stories
+        where slug = ${data.slug} and published = true
+        limit 1
+      `;
+      return rows[0] ?? null;
+    }
   });
 
 export const listCategories = createServerFn({ method: "GET" }).handler(
   async () => {
-    const sql = await getDeskSql();
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
     return sql<DeskCategory>`
       select id, slug, label from desk_categories
       order by case when slug = 'headline' then 0 else 1 end, id asc
@@ -179,30 +207,52 @@ export const listTrashStories = createServerFn({ method: "GET" })
     `;
   });
 
+async function insertStory(
+  sql: Awaited<ReturnType<typeof getDeskSql>>,
+  data: z.infer<typeof storyInput>,
+  userId: string,
+) {
+  const tags = data.tags?.trim() ?? "";
+  const imageUrl = cleanImageUrl(data.imageUrl);
+  const excerpt = autoExcerpt(data.body, data.excerpt);
+  const location = data.location?.trim() || "कलैया";
+  const gallery = galleryJson(data.gallery);
+  let lastError: unknown;
+  for (let i = 0; i < 3; i += 1) {
+    const slug = slugify();
+    try {
+      const rows = await sql<DeskStory>`
+        insert into desk_stories
+          (user_id, slug, title, excerpt, body, category, location, tags, image_url, gallery_urls, published)
+        values
+          (${userId}, ${slug}, ${data.title}, ${excerpt}, ${data.body},
+           ${data.category}, ${location}, ${tags}, ${imageUrl}, ${gallery}, true)
+        returning id, slug, title, excerpt, body, category, location, tags,
+                  image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
+      `;
+      if (rows[0]) return rows[0];
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message.toLowerCase() : "";
+      if (!msg.includes("unique") && !msg.includes("duplicate")) throw err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("समाचार सेभ भएन।");
+}
+
 export const createStory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(storyInput)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const sql = await getDeskSql();
-    const slug = slugify(data.title);
-    const tags = data.tags?.trim() ?? "";
-    const imageUrl = cleanImageUrl(data.imageUrl);
-    const excerpt = autoExcerpt(data.body, data.excerpt);
-    const location = data.location?.trim() || "कलैया";
-    const galleryJson = JSON.stringify(
-      (data.gallery ?? []).map((url) => cleanImageUrl(url)).filter(Boolean),
-    );
-    const rows = await sql<DeskStory>`
-      insert into desk_stories
-        (user_id, slug, title, excerpt, body, category, location, tags, image_url, gallery_urls, published)
-      values
-        (${context.userId}, ${slug}, ${data.title}, ${excerpt}, ${data.body},
-         ${data.category}, ${location}, ${tags}, ${imageUrl}, ${galleryJson}, true)
-      returning id, slug, title, excerpt, body, category, location, tags,
-                image_url as "imageUrl", gallery_urls as "galleryUrls", published, created_at as "createdAt"
-    `;
-    return rows[0];
+    try {
+      return await insertStory(sql, data, context.userId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "समाचार सेभ भएन।";
+      if (msg.includes("तस्बिर") || msg.includes("एडमिन")) throw err;
+      throw new Error(`समाचार सेभ भएन। ${msg.slice(0, 120)}`);
+    }
   });
 
 export const updateStory = createServerFn({ method: "POST" })
@@ -215,9 +265,7 @@ export const updateStory = createServerFn({ method: "POST" })
     const imageUrl = cleanImageUrl(data.imageUrl);
     const excerpt = autoExcerpt(data.body, data.excerpt);
     const location = data.location?.trim() || "कलैया";
-    const galleryJson = JSON.stringify(
-      (data.gallery ?? []).map((url) => cleanImageUrl(url)).filter(Boolean),
-    );
+    const gallery = galleryJson(data.gallery);
     const rows = await sql<DeskStory>`
       update desk_stories
       set title = ${data.title},
@@ -227,7 +275,7 @@ export const updateStory = createServerFn({ method: "POST" })
           location = ${location},
           tags = ${tags},
           image_url = ${imageUrl},
-          gallery_urls = ${galleryJson},
+          gallery_urls = ${gallery},
           updated_at = now()
       where id = ${data.id} and deleted_at is null
       returning id, slug, title, excerpt, body, category, location, tags,
