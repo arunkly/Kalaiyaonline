@@ -86,6 +86,29 @@ export function formatBs(y: number, m: number, d: number) {
   return `${toNpDigits(d)} ${BS_MONTHS[m - 1]} ${toNpDigits(y)}`;
 }
 
+export function formatBsDate(iso: string | Date | null | undefined) {
+  if (!iso) return "";
+  const ad = nepalAdIso(iso);
+  if (!ad) return "";
+  const bs = adToBs(ad);
+  if (!bs) return "";
+  return formatBs(bs.year, bs.month, bs.day);
+}
+
+function nepalAdIso(iso: string | Date) {
+  const value = iso instanceof Date ? iso : new Date(iso);
+  if (Number.isFinite(value.getTime())) {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kathmandu",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(value);
+  }
+  const sliced = String(iso).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(sliced) ? sliced : "";
+}
+
 export function pad(n: number) {
   return String(n).padStart(2, "0");
 }
