@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { displayTitle, formatDate, toNpDigits, type Article } from "@/data/articles";
+import { displayTitle, toNpDigits, type Article } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
 import { cn } from "@/lib/cn";
 import { listStoryViews } from "@/lib/views";
 
@@ -101,7 +102,7 @@ export function PostSidebar({
                   >
                     {displayTitle(a)}
                   </span>
-                  <span className="mt-1 block text-[11px] text-muted">{formatDate(a.date)}</span>
+                  <span className="mt-1 block text-[11px] text-muted">{formatBsDateTime(a.date)}</span>
                 </span>
               </Link>
             </li>
