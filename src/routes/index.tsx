@@ -77,7 +77,7 @@ function Home() {
               <img src={article.imageUrl} alt="" className="mt-6 w-full object-cover" />
             ) : null}
           </Link>
-          <div className="my-10 flex items-center gap-3" aria-hidden>
+          <div className="my-10 flex items-center gap-3" aria-hidden="true">
             <span className="h-px flex-1 bg-gradient-to-r from-transparent via-line-strong to-mark/70" />
             <span className="size-1.5 rotate-45 bg-crimson" />
             <span className="h-px flex-1 bg-gradient-to-l from-transparent via-line-strong to-mark/70" />
