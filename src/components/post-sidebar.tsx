@@ -93,7 +93,7 @@ export function PostSidebar({
                   <span className="size-16 shrink-0 rounded-lg bg-chip" />
                 )}
                 <span className="min-w-0">
-                  <span className="line-clamp-3 font-display text-[17px] font-normal leading-snug lg:text-[19px]">
+                  <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug">
                     {displayTitle(a)}
                   </span>
                   <span className="mt-1 block text-[11px] text-muted">{formatBsDateTime(a.date)}</span>

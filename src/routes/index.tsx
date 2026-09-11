@@ -20,7 +20,7 @@ import { getStoryEngagement } from "@/lib/engagement";
 export const Route = createFileRoute("/")({ component: Home });
 
 const DESK_TABS = [
-  { slug: "news", label: "समाचार", aliases: ["news", "समाचार"], icon: Newspaper },
+  { slug: "news", label: "राष्ट्रिय", aliases: ["news", "समाचार", "राष्ट्रिय", "national"], icon: Newspaper },
   { slug: "local", label: "स्थानीय", aliases: ["local", "स्थानीय", "स्थानिय"], icon: MapPin },
   { slug: "international", label: "अन्तर्राष्ट्रिय", aliases: ["international", "अन्तर्राष्ट्रिय", "world"], icon: Globe },
 ] as const;
@@ -56,7 +56,7 @@ function MiniNews({ article }: { article: Article }) {
         <span className="h-[5.5rem] w-[6.5rem] shrink-0 rounded-lg bg-gradient-to-br from-crimson to-ink sm:h-24 sm:w-28" />
       )}
       <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
-        <span className="line-clamp-3 font-display text-[15px] font-bold leading-snug text-ink group-hover:text-crimson sm:text-base">
+        <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug text-ink group-hover:text-crimson">
           {displayTitle(article)}
         </span>
         <span className="mt-2 text-xs text-muted">{formatBsDateTime(article.date)}</span>
@@ -125,7 +125,7 @@ function DeskTabs({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold tracking-[0.28em] text-mark">KALAIYAONLINE</p>
-            <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">मुख्य खबर</h2>
+            <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">समाचार</h2>
           </div>
           <Link
             to="/category/$slug"
@@ -148,7 +148,7 @@ function DeskTabs({
                 className={cn(
                   "flex min-h-11 items-center justify-center gap-1.5 rounded-full px-1 text-[13px] font-semibold transition sm:text-[15px]",
                   on
-                    ? "bg-white text-crimson shadow-[0_8px_18px_-10px_rgba(0,0,0,0.55)]"
+                    ? "bg-white font-bold text-black shadow-[0_8px_18px_-10px_rgba(0,0,0,0.55)]"
                     : "text-white/80 hover:bg-white/10 hover:text-white",
                 )}
               >
@@ -209,7 +209,7 @@ function DeskTabs({
                       <span className="size-[4.25rem] shrink-0 rounded-lg bg-chip" />
                     )}
                     <span className="min-w-0">
-                      <span className="line-clamp-3 font-display text-[15px] leading-snug text-ink sm:text-[17px]">
+                      <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug text-ink">
                         {displayTitle(article)}
                       </span>
                       <span className="mt-1 block text-xs text-muted">
