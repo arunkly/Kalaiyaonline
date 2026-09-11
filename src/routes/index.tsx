@@ -1,8 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
-import { displayTitle, isHeadlineArticle, toNpDigits, type Article } from "@/data/articles";
-import { formatBsDate } from "@/lib/bs-date";
+import { byLatest, displayTitle, isHeadlineArticle, toNpDigits, type Article } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
 import { listPublishedStories } from "@/lib/desk";
 import { deskToArticle } from "@/lib/edition";
 import { getStoryEngagement } from "@/lib/engagement";
@@ -25,6 +25,7 @@ function Home() {
             }
           })
           .filter((a) => isHeadlineArticle(a))
+          .sort(byLatest)
           .slice(0, 2);
         setStories(headlines);
       })
@@ -69,7 +70,7 @@ function Home() {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
               <CalendarDays className="size-4 text-mark" />
-              {formatBsDate(article.date)}
+              {formatBsDateTime(article.date)}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
               <MessageSquare className="size-4 text-crimson" />
