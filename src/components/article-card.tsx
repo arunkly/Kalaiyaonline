@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { displayTitle, formatDate, toNpDigits, type Article } from "@/data/articles";
+import { Clock, MessageSquare } from "lucide-react";
+import { displayTitle, formatDate, timeAgoNp, toNpDigits, type Article } from "@/data/articles";
 import { cn } from "@/lib/cn";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 
@@ -7,38 +8,150 @@ export function ArticleCard({
   article,
   variant = "standard",
   rank,
+  comments = 0,
 }: {
   article: Article;
-  variant?: "hero" | "standard" | "compact" | "text";
+  variant?: "hero" | "headline" | "lead" | "standard" | "compact" | "text";
   rank?: number;
+  comments?: number;
 }) {
   const cats = useCategories();
   const label = categoryLabel(cats, article.category);
   const title = displayTitle(article);
   const date = formatDate(article.date);
+  const ago = timeAgoNp(article.date);
+  const initial = (article.author || "K").trim().charAt(0) || "K";
+
+  if (variant === "headline") {
+    return (
+      <Link
+        to="/article/$slug"
+        params={{ slug: article.slug }}
+        className="group block bg-surface"
+      >
+        <h2 className="text-center font-display text-[1.85rem] font-extrabold leading-[1.25] text-ink sm:text-[2.15rem]">
+          {title}
+        </h2>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted">
+          <span className="inline-flex items-center gap-2">
+            <span className="grid size-8 place-items-center overflow-hidden rounded-full border border-line bg-chip font-bold text-crimson">
+              {initial}
+            </span>
+            <span className="font-medium text-ink-soft">{article.author}</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="size-4" />
+            {ago || date}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <MessageSquare className="size-4" />
+            {toNpDigits(comments)}
+          </span>
+        </div>
+        {article.imageUrl ? (
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="mt-6 aspect-[16/10] w-full object-cover"
+          />
+        ) : (
+          <div className="mt-6 aspect-[16/10] w-full bg-gradient-to-br from-crimson to-ink" />
+        )}
+      </Link>
+    );
+  }
 
   if (variant === "hero") {
     return (
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className="group grid overflow-hidden rounded-[1.75rem] bg-[#10261a] text-white lg:grid-cols-12"
+        className="group relative isolate block min-h-80 overflow-hidden rounded-lg bg-ink text-paper sm:min-h-[30rem]"
       >
-        <div className="relative min-h-64 lg:col-span-7 lg:min-h-[28rem]">
-          {article.imageUrl ? (
-            <img src={article.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#14934e] to-[#10261a]" />
-          )}
-          <span className="absolute left-4 top-4 rounded-full bg-[#ff6f00] px-3 py-1 text-[11px] font-bold tracking-wide">
+        {article.imageUrl ? (
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-crimson to-ink" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
+        <div className="relative flex min-h-80 flex-col justify-end p-5 sm:min-h-[30rem] sm:p-8">
+          <span className="w-fit bg-mark px-2.5 py-0.5 text-[11px] font-extrabold tracking-[0.14em] text-ink">
             हेडलाइन
           </span>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl">{title}</h2>
+          {article.excerpt ? (
+            <p className="mt-3 max-w-2xl line-clamp-2 text-sm text-paper/80 sm:text-base">{article.excerpt}</p>
+          ) : null}
+          <p className="mt-4 text-xs font-medium text-paper/65">
+            {label} · {date}
+          </p>
         </div>
-        <div className="flex flex-col justify-end p-6 lg:col-span-5 lg:p-8">
-          <p className="text-[11px] font-semibold tracking-[0.18em] text-[#8dffb0]">{label} · {article.location}</p>
-          <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">{title}</h2>
-          {article.excerpt ? <p className="mt-3 line-clamp-3 text-sm text-white/75">{article.excerpt}</p> : null}
-          <p className="mt-5 text-xs text-white/55">{article.author} · {date}</p>
+      </Link>
+    );
+  }
+    return (
+      <Link
+        to="/article/$slug"
+        params={{ slug: article.slug }}
+        className="group relative isolate block min-h-80 overflow-hidden rounded-lg bg-ink text-paper sm:min-h-[30rem]"
+      >
+        {article.imageUrl ? (
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-crimson to-ink" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
+        <div className="relative flex min-h-80 flex-col justify-end p-5 sm:min-h-[30rem] sm:p-8">
+          <span className="w-fit bg-mark px-2.5 py-0.5 text-[11px] font-extrabold tracking-[0.14em] text-ink">
+            हेडलाइन
+          </span>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl">{title}</h2>
+          {article.excerpt ? (
+            <p className="mt-3 max-w-2xl line-clamp-2 text-sm text-paper/80 sm:text-base">{article.excerpt}</p>
+          ) : null}
+          <p className="mt-4 text-xs font-medium text-paper/65">
+            {label} · {date}
+          </p>
+        </div>
+      </Link>
+    );
+  }
+
+  if (variant === "lead") {
+    return (
+      <Link
+        to="/article/$slug"
+        params={{ slug: article.slug }}
+        className="group grid overflow-hidden rounded-lg border border-line bg-surface sm:grid-cols-2"
+      >
+        <div className="relative min-h-44 bg-chip sm:min-h-[17rem]">
+          {article.imageUrl ? (
+            <img
+              src={article.imageUrl}
+              alt=""
+              className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-crimson to-crimson-deep" />
+          )}
+        </div>
+        <div className="flex flex-col justify-center p-4 sm:p-6">
+          <p className="text-[11px] font-bold tracking-[0.16em] text-crimson">{label}</p>
+          <h3 className="mt-2 font-display text-2xl font-extrabold leading-snug group-hover:text-crimson sm:text-3xl">
+            {title}
+          </h3>
+          {article.excerpt ? (
+            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-soft">{article.excerpt}</p>
+          ) : null}
+          <p className="mt-3 text-xs text-muted">{date}</p>
         </div>
       </Link>
     );
@@ -49,14 +162,14 @@ export function ArticleCard({
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className="group overflow-hidden rounded-2xl border border-[#d7e4db] bg-white"
+        className="group overflow-hidden rounded-lg border border-line bg-surface"
       >
         {article.imageUrl ? (
-          <img src={article.imageUrl} alt="" className="h-44 w-full object-cover" />
+          <img src={article.imageUrl} alt="" className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : null}
         <div className="p-4">
-          <p className="text-[11px] font-semibold tracking-wider text-[#14934e]">{label}</p>
-          <h3 className="mt-1 font-display text-xl leading-snug group-hover:text-[#14934e]">{title}</h3>
+          <p className="text-[11px] font-bold tracking-[0.16em] text-crimson">{label}</p>
+          <h3 className="mt-1 font-display text-xl font-bold leading-snug group-hover:text-crimson">{title}</h3>
           <p className="mt-2 text-xs text-muted">{date}</p>
         </div>
       </Link>
@@ -68,10 +181,10 @@ export function ArticleCard({
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className="group grid grid-cols-[auto_auto_1fr] items-start gap-3 border-b border-line py-3.5 last:border-b-0"
+        className="group grid grid-cols-[auto_auto_1fr] items-start gap-3 border-b border-line py-3 last:border-b-0"
       >
         {typeof rank === "number" ? (
-          <span className="w-7 pt-0.5 font-sans text-xl font-bold leading-none text-crimson">
+          <span className="w-7 pt-0.5 font-display text-xl font-extrabold leading-none text-crimson">
             {toNpDigits(rank)}
           </span>
         ) : null}
@@ -79,14 +192,14 @@ export function ArticleCard({
           <img
             src={article.imageUrl}
             alt=""
-            className="size-16 rounded-lg object-cover sm:size-[4.5rem]"
+            className="size-16 rounded-md object-cover sm:size-[4.5rem]"
           />
         ) : (
           <span className="hidden" />
         )}
         <span>
-          <p className="text-[11px] font-semibold tracking-wider text-crimson">{label}</p>
-          <h3 className="mt-1 font-display text-lg leading-snug group-hover:text-crimson sm:text-xl">
+          <p className="text-[11px] font-bold tracking-[0.14em] text-crimson">{label}</p>
+          <h3 className="mt-0.5 font-display text-lg font-bold leading-snug group-hover:text-crimson sm:text-xl">
             {title}
           </h3>
           {variant === "text" ? (
@@ -102,7 +215,7 @@ export function ArticleCard({
     <Link
       to="/article/$slug"
       params={{ slug: article.slug }}
-      className={cn("group card-lift flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface")}
+      className={cn("group card-lift flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface")}
     >
       <div className="relative overflow-hidden bg-chip">
         {article.imageUrl ? (
@@ -116,11 +229,11 @@ export function ArticleCard({
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <p className="text-[11px] font-semibold tracking-wider text-crimson">
+        <p className="text-[11px] font-bold tracking-[0.16em] text-crimson">
           {label}
           {article.breaking ? " · ब्रेकिङ" : ""}
         </p>
-        <h3 className="mt-2 font-display text-xl leading-snug group-hover:text-crimson">{title}</h3>
+        <h3 className="mt-2 font-display text-xl font-bold leading-snug group-hover:text-crimson">{title}</h3>
         <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-ink-soft">{article.excerpt}</p>
         <p className="mt-3 text-xs text-muted">
           {article.location} · {date}
