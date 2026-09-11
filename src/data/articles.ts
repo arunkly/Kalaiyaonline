@@ -7,6 +7,7 @@ export type Article = {
   excerpt: string;
   body: string[];
   category: Category;
+  categories?: string[];
   tags: string[];
   author: string;
   date: string;
@@ -39,8 +40,37 @@ export function byCategory(slug: Category) {
   return articles.filter((a) => a.category === slug);
 }
 
+export function parseCategories(primary?: string | null, extra?: string | string[] | null): string[] {
+  const extraText = Array.isArray(extra) ? extra.join(",") : extra || "";
+  const out: string[] = [];
+  for (const part of `${primary || ""},${extraText}`.split(/[,|]/)) {
+    const value = part.trim();
+    if (value && !out.includes(value)) out.push(value);
+  }
+  return out;
+}
+
+export function articleCategories(article: { category?: string; categories?: string[] }): string[] {
+  return parseCategories(article.category, article.categories);
+}
+
+export function articleHasCategory(
+  article: { category?: string; categories?: string[] },
+  slug: string,
+  label?: string,
+) {
+  const all = articleCategories(article).map((c) => c.toLowerCase());
+  if (all.includes(slug.toLowerCase())) return true;
+  if (label && all.includes(label.toLowerCase())) return true;
+  return false;
+}
+
 export function isHeadline(category: string) {
   return category === HEADLINE_SLUG || category === "हेडलाइन";
+}
+
+export function isHeadlineArticle(article: { category?: string; categories?: string[] }) {
+  return articleCategories(article).some(isHeadline);
 }
 
 export function latestArticles() {
