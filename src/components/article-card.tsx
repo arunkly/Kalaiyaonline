@@ -93,37 +93,6 @@ export function ArticleCard({
       </Link>
     );
   }
-    return (
-      <Link
-        to="/article/$slug"
-        params={{ slug: article.slug }}
-        className="group relative isolate block min-h-80 overflow-hidden rounded-lg bg-ink text-paper sm:min-h-[30rem]"
-      >
-        {article.imageUrl ? (
-          <img
-            src={article.imageUrl}
-            alt=""
-            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-crimson to-ink" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
-        <div className="relative flex min-h-80 flex-col justify-end p-5 sm:min-h-[30rem] sm:p-8">
-          <span className="w-fit bg-mark px-2.5 py-0.5 text-[11px] font-extrabold tracking-[0.14em] text-ink">
-            हेडलाइन
-          </span>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl">{title}</h2>
-          {article.excerpt ? (
-            <p className="mt-3 max-w-2xl line-clamp-2 text-sm text-paper/80 sm:text-base">{article.excerpt}</p>
-          ) : null}
-          <p className="mt-4 text-xs font-medium text-paper/65">
-            {label} · {date}
-          </p>
-        </div>
-      </Link>
-    );
-  }
 
   if (variant === "lead") {
     return (
