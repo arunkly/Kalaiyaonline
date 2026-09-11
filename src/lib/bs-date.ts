@@ -95,6 +95,10 @@ export function formatBsDate(iso: string | Date | null | undefined) {
   return formatBs(bs.year, bs.month, bs.day);
 }
 
+export function formatBsDateTime(iso: string | Date | null | undefined) {
+  return formatBsDate(iso);
+}
+
 function nepalAdIso(iso: string | Date) {
   const value = iso instanceof Date ? iso : new Date(iso);
   if (Number.isFinite(value.getTime())) {
