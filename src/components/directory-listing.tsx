@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Eye, Mail, MapPin, Phone } from "lucide-react";
 import { MiniShare } from "@/components/mini-share";
-import { formatDate, toNpDigits } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
+import { toNpDigits } from "@/data/articles";
 import type { DirItem } from "@/lib/directory-desk";
 
 export function DirectoryListing({
@@ -61,7 +62,7 @@ export function DirectoryListing({
             ) : null}
           </p>
           {item.note ? <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{item.note}</p> : null}
-          {item.createdAt ? <p className="mt-1 text-xs text-muted">{formatDate(item.createdAt)}</p> : null}
+          {item.createdAt ? <p className="mt-1 text-xs text-muted">{formatBsDateTime(item.createdAt)}</p> : null}
         </div>
       </Link>
       <div className="flex items-center justify-between border-t border-line px-4 py-2">
