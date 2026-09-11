@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { articles, parseCategories, type Article, type Category } from "@/data/articles";
+import { articles, byLatest, parseCategories, type Article, type Category } from "@/data/articles";
 import {
   getPublishedStory,
   listPublishedStories,
@@ -117,7 +117,7 @@ export function useEdition() {
 
   return useMemo(() => {
     const seen = new Set(extra.map((a) => a.slug));
-    return [...extra, ...articles.filter((a) => !seen.has(a.slug))];
+    return [...extra, ...articles.filter((a) => !seen.has(a.slug))].sort(byLatest);
   }, [extra]);
 }
 
