@@ -12,10 +12,12 @@ import { UsersDeskPanel } from "@/components/admin-users-desk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { parseCategories } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
 import { isAdminEmail } from "@/lib/admin";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
+import { storyPublishIso } from "@/lib/edition";
 import {
   createCategory,
   createStory,
@@ -472,7 +474,9 @@ function AdminPage() {
               <p className="mt-4 text-sm text-muted">अहिले केही छैन।</p>
             ) : (
               <ul className="mt-4 divide-y divide-line rounded-md border border-line bg-surface">
-                {stories.map((s) => (
+                {[...stories]
+                  .sort((a, b) => storyPublishIso(b).localeCompare(storyPublishIso(a)))
+                  .map((s) => (
                   <li key={s.id} className="flex flex-wrap items-start justify-between gap-3 px-4 py-4">
                     <div className="flex min-w-0 flex-1 gap-3">
                       {s.imageUrl ? (
@@ -488,6 +492,8 @@ function AdminPage() {
                         {parseCategories(s.category, s.categories)
                           .map((slug) => cats.find((c) => c.slug === slug)?.label ?? slug)
                           .join(" · ")}
+                        {" · "}
+                        {formatBsDateTime(storyPublishIso(s))}
                       </p>
                       <Link
                         to="/article/$slug"
