@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, MessageSquare } from "lucide-react";
-import { displayTitle, formatDate, timeAgoNp, toNpDigits, type Article } from "@/data/articles";
+import { displayTitle, timeAgoNp, toNpDigits, type Article } from "@/data/articles";
+import { formatBsDate } from "@/lib/bs-date";
 import { cn } from "@/lib/cn";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 
@@ -18,7 +19,7 @@ export function ArticleCard({
   const cats = useCategories();
   const label = categoryLabel(cats, article.category);
   const title = displayTitle(article);
-  const date = formatDate(article.date);
+  const date = formatBsDate(article.date);
   const ago = timeAgoNp(article.date);
   const initial = (article.author || "K").trim().charAt(0) || "K";
 
