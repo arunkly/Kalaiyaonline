@@ -8,7 +8,7 @@ import { listStoryViews } from "@/lib/views";
 export function PostSidebar({
   articles,
   currentSlug,
-  limit = 8,
+  limit = 7,
   numbered = false,
 }: {
   articles: Article[];
@@ -94,12 +94,7 @@ export function PostSidebar({
                   <span className="size-16 shrink-0 rounded-lg bg-chip" />
                 )}
                 <span className="min-w-0">
-                  <span
-                    className={cn(
-                      "line-clamp-3 font-display leading-snug",
-                      numbered ? "text-xl" : "text-sm font-semibold",
-                    )}
-                  >
+                  <span className="line-clamp-3 font-display text-[17px] font-normal leading-snug lg:text-[19px]">
                     {displayTitle(a)}
                   </span>
                   <span className="mt-1 block text-[11px] text-muted">{formatBsDateTime(a.date)}</span>
