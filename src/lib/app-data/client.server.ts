@@ -84,6 +84,10 @@ export function getConnectorAccessToken(): string | null {
   return inboundContext().token;
 }
 
+export function isConnectorTokenReady(): boolean {
+  return Boolean(getConnectorAccessToken());
+}
+
 type GateJson = {
   ok?: boolean;
   data?: unknown;
