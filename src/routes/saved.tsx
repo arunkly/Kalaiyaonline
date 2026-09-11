@@ -1,13 +1,15 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
-import { articles } from "@/data/articles";
+import { byLatest } from "@/data/articles";
+import { useEdition } from "@/lib/edition";
 import { usePrefs } from "@/lib/prefs";
 
 export const Route = createFileRoute("/saved")({ component: SavedPage });
 
 function SavedPage() {
   const saved = usePrefs((s) => s.saved);
-  const items = articles.filter((a) => saved.includes(a.slug));
+  const edition = useEdition();
+  const items = edition.filter((a) => saved.includes(a.slug)).sort(byLatest);
 
   return (
     <div>
