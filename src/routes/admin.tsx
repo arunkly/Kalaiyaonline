@@ -11,6 +11,7 @@ import { GalleryDeskPanel } from "@/components/admin-gallery-desk";
 import { UsersDeskPanel } from "@/components/admin-users-desk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { parseCategories } from "@/data/articles";
 import { isAdminEmail } from "@/lib/admin";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -62,6 +63,7 @@ function AdminPage() {
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState("local");
+  const [selectedCats, setSelectedCats] = useState<string[]>(["local"]);
   const [location, setLocation] = useState("कलैया, बारा");
   const [tags, setTags] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -80,6 +82,7 @@ function AdminPage() {
       setCats(sections);
       if (!sections.some((c) => c.slug === category)) {
         setCategory(defaultCategory(sections));
+        setSelectedCats([defaultCategory(sections)]);
       }
       setError(null);
     } catch (err) {
@@ -122,6 +125,7 @@ function AdminPage() {
     setImageUrl("");
     setLocation("कलैया, बारा");
     setCategory(defaultCategory(cats));
+    setSelectedCats([defaultCategory(cats)]);
   }
 
   function startEdit(s: DeskStory) {
@@ -131,6 +135,7 @@ function AdminPage() {
     setExcerpt(s.excerpt);
     setBody(s.body);
     setCategory(s.category);
+    setSelectedCats(parseCategories(s.category, s.categories));
     setLocation(s.location);
     setTags(s.tags);
     setImageUrl(s.imageUrl ?? "");
@@ -149,7 +154,8 @@ function AdminPage() {
             title,
             excerpt,
             body,
-            category,
+            category: selectedCats[0] || category,
+            categories: selectedCats.join(","),
             tags,
             imageUrl,
             location: location.trim() || "कलैया, बारा",
@@ -161,7 +167,8 @@ function AdminPage() {
             title,
             excerpt,
             body,
-            category,
+            category: selectedCats[0] || category,
+            categories: selectedCats.join(","),
             tags,
             imageUrl,
             location: location.trim() || "कलैया, बारा",
@@ -377,20 +384,37 @@ function AdminPage() {
               />
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium">
-                विभाग
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={field}
-                >
-                  {cats.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <fieldset className="block text-sm font-medium">
+                <legend>विभाग (एकभन्दा बढी छान्न सकिन्छ)</legend>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {cats.map((c) => {
+                    const on = selectedCats.includes(c.slug);
+                    return (
+                      <label
+                        key={c.slug}
+                        className={
+                          on
+                            ? "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-crimson bg-chip px-3 text-sm font-semibold text-crimson"
+                            : "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line bg-paper px-3 text-sm"
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => {
+                            setSelectedCats((prev) => {
+                              const next = on ? prev.filter((slug) => slug !== c.slug) : [...prev, c.slug];
+                              return next.length ? next : prev;
+                            });
+                          }}
+                          className="size-4 accent-[#14934e]"
+                        />
+                        {c.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <label className="block text-sm font-medium">
                 स्थान
                 <input
@@ -461,7 +485,9 @@ function AdminPage() {
                       <div>
                       <p className="font-display text-xl">{s.title}</p>
                       <p className="text-sm text-muted">
-                        {cats.find((c) => c.slug === s.category)?.label ?? s.category}
+                        {parseCategories(s.category, s.categories)
+                          .map((slug) => cats.find((c) => c.slug === slug)?.label ?? slug)
+                          .join(" · ")}
                       </p>
                       <Link
                         to="/article/$slug"
