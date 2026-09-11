@@ -124,7 +124,7 @@
   .news-ticker-track {
     display: flex;
     width: max-content;
-    animation: ticker-scroll 42s linear infinite;
+    animation: ticker-scroll 18s linear infinite;
   }
 
   .news-ticker-track:hover {
