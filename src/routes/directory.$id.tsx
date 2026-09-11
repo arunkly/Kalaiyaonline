@@ -2,7 +2,8 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { Eye, Mail, MapPin, Phone, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ShareBar } from "@/components/share-bar";
-import { formatDate, toNpDigits } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
+import { toNpDigits } from "@/data/articles";
 import { getDirEntry, getMapSettings, listDirCategories, type DirItem } from "@/lib/directory-desk";
 import { DEFAULT_MAP, mapEmbedSrc, mapOpenUrl, type MapSettings } from "@/lib/map-embed";
 import { incrementView } from "@/lib/views";
@@ -96,7 +97,7 @@ function DirectoryPostPage() {
       <div>
         <p className="kicker">{label || item.category}</p>
         <h1 className="mt-2 font-display text-3xl font-normal sm:text-4xl">{item.name}</h1>
-        {item.createdAt ? <p className="mt-1 text-sm text-muted">{formatDate(item.createdAt)}</p> : null}
+        {item.createdAt ? <p className="mt-1 text-sm text-muted">{formatBsDateTime(item.createdAt)}</p> : null}
         <p className="mt-2 inline-flex items-center gap-1 text-sm text-crimson">
           <Eye className="size-4" /> {toNpDigits(views || item.views || 0)} पटक हेरियो
         </p>
