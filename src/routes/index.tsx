@@ -124,8 +124,7 @@ function DeskTabs({
       <div className="bg-[linear-gradient(135deg,#7a1220_0%,#9B1C2C_46%,#c45a22_100%)] px-3 py-5 text-white sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.28em] text-mark">KALAIYAONLINE</p>
-            <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">समाचार</h2>
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">समाचार</h2>
           </div>
           <Link
             to="/category/$slug"
@@ -289,32 +288,49 @@ function Home() {
 
   return (
     <div className="space-y-4 py-6 sm:py-8">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         {headlines.map((article) => (
           <div key={article.slug}>
-            <Link to="/article/$slug" params={{ slug: article.slug }} className="block">
-              <h2 className="text-center font-display text-[35px] font-bold leading-[1.28] text-ink md:text-[40px] lg:text-[50px]">
-                {displayTitle(article)}
-              </h2>
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-crimson/20 bg-chip px-3 py-1.5">
-                  <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover" />
-                  <span className="text-sm font-bold text-crimson">कलैयाअनलाइन</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
-                  <CalendarDays className="size-4 text-mark" />
-                  {formatBsDateTime(article.date)}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
-                  <MessageSquare className="size-4 text-crimson" />
-                  {toNpDigits(comments[article.slug] ?? 0)}
-                </span>
-              </div>
-              {article.imageUrl ? (
-                <img src={article.imageUrl} alt="" className="mt-6 w-full object-cover" />
-              ) : null}
-            </Link>
-            <div className="my-10 flex items-center gap-3" aria-hidden="true">
+            <article className="rounded-[1.6rem] border border-line bg-white px-4 py-6 shadow-sm sm:px-8 sm:py-8">
+              <Link to="/article/$slug" params={{ slug: article.slug }} className="group block">
+                <h2 className="text-center font-display text-[35px] font-bold leading-[1.22] text-ink md:text-[40px] lg:text-[50px]">
+                  {displayTitle(article)}
+                </h2>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-ink-soft">
+                  <span className="inline-flex items-center gap-2 font-semibold text-crimson">
+                    <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover ring-1 ring-crimson/20" />
+                    कलैयाअनलाइन
+                  </span>
+                  <span className="text-line-strong">·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarDays className="size-4 text-mark" />
+                    {formatBsDateTime(article.date)}
+                  </span>
+                  <span className="text-line-strong">·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageSquare className="size-4 text-crimson" />
+                    {toNpDigits(comments[article.slug] ?? 0)}
+                  </span>
+                </div>
+                <div className="relative mt-6 overflow-hidden rounded-[1.4rem] bg-chip">
+                  {article.imageUrl ? (
+                    <img
+                      src={article.imageUrl}
+                      alt=""
+                      className="aspect-[16/9] w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="aspect-[16/9] w-full bg-gradient-to-br from-crimson to-ink" />
+                  )}
+                </div>
+                {article.excerpt ? (
+                  <p className="mt-5 line-clamp-2 text-center text-base leading-relaxed text-ink-soft sm:text-lg">
+                    {article.excerpt}
+                  </p>
+                ) : null}
+              </Link>
+            </article>
+            <div className="my-8 flex items-center gap-3" aria-hidden="true">
               <span className="h-px flex-1 bg-gradient-to-r from-transparent via-line-strong to-mark/70" />
               <span className="size-1.5 rotate-45 bg-crimson" />
               <span className="h-px flex-1 bg-gradient-to-l from-transparent via-line-strong to-mark/70" />

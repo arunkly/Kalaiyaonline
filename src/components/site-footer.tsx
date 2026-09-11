@@ -112,7 +112,14 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
       <div className="border-t border-white/10 bg-[#0b1a12] px-4 py-4 pb-28 sm:px-6 lg:pb-4">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-center text-xs sm:flex-row sm:text-left">
           <p className="text-white/45">© {toNpDigits(new Date().getFullYear())} {about?.orgName || "KalaiyaOnline"}</p>
-          <p className="font-medium text-[#ffd27a]">Designed and Developed By : Arun Kumar Sah</p>
+          <a
+            href="https://www.facebook.com/kalaiyabara"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 font-medium text-[#ffd27a] underline underline-offset-4 hover:text-white"
+          >
+            डिजाइन तथा बिकास : अरुण कुमार साह
+          </a>
         </div>
       </div>
     </footer>
