@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { PostSidebar } from "@/components/post-sidebar";
 import {
+  articleCategories,
   articleHasCategory,
   byLatest,
   displayTitle,
@@ -13,9 +14,10 @@ import {
 } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
 import { cn } from "@/lib/cn";
-import { listPublishedStories } from "@/lib/desk";
+import { listPublishedStories, type DeskCategory } from "@/lib/desk";
 import { deskToArticle } from "@/lib/edition";
 import { getStoryEngagement } from "@/lib/engagement";
+import { categoryLabel, useCategories } from "@/lib/use-categories";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -32,6 +34,12 @@ const AFTER_BLOCKS = [
   { slug: "health", label: "स्वास्थ्य", aliases: ["health", "स्वास्थ्य"] },
   { slug: "tech", label: "टेक", aliases: ["tech", "टेक", "technology", "प्रविधि"] },
 ] as const;
+
+function headlineCategory(article: Article, cats: DeskCategory[]) {
+  const slugs = articleCategories(article).filter((s) => s !== "headline");
+  const slug = slugs[0] || article.category || "headline";
+  return categoryLabel(cats, slug);
+}
 
 function pickStories(edition: Article[], aliases: readonly string[], exclude: Set<string>, limit = 5) {
   return edition
@@ -229,6 +237,7 @@ function DeskTabs({
 function Home() {
   const [edition, setEdition] = useState<Article[]>([]);
   const [comments, setComments] = useState<Record<string, number>>({});
+  const cats = useCategories();
 
   useEffect(() => {
     void listPublishedStories()
@@ -293,6 +302,22 @@ function Home() {
           <div key={article.slug}>
             <article className="rounded-[1.6rem] border border-line bg-white px-4 py-6 shadow-sm sm:px-8 sm:py-8">
               <Link to="/article/$slug" params={{ slug: article.slug }} className="group block">
+                <div className="mb-4 flex flex-col items-center gap-2">
+                  <span className="text-[10px] font-bold tracking-[0.42em] text-mark">हेडलाइन</span>
+                  <span className="relative inline-flex items-center">
+                    <span className="absolute -left-3 top-1/2 size-2.5 -translate-y-1/2 rotate-45 bg-mark shadow-sm" />
+                    <span
+                      className="inline-flex min-w-[7.5rem] items-center justify-center bg-gradient-to-r from-[#7a1522] via-crimson to-[#7a1522] px-7 py-1.5 text-[13px] font-bold tracking-[0.22em] text-white shadow-[0_8px_18px_-10px_rgba(155,28,44,0.9)]"
+                      style={{
+                        clipPath:
+                          "polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%)",
+                      }}
+                    >
+                      {headlineCategory(article, cats)}
+                    </span>
+                    <span className="absolute -right-3 top-1/2 size-2.5 -translate-y-1/2 rotate-45 bg-mark shadow-sm" />
+                  </span>
+                </div>
                 <h2 className="text-center font-display text-[35px] font-bold leading-[1.22] text-ink md:text-[40px] lg:text-[50px]">
                   {displayTitle(article)}
                 </h2>

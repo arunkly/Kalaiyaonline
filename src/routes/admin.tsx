@@ -17,7 +17,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
-import { storyPublishIso } from "@/lib/edition";
+import { storyPublishIso, splitGalleryBody } from "@/lib/edition";
 import {
   createCategory,
   createStory,
@@ -135,7 +135,7 @@ function AdminPage() {
     setEditingId(s.id);
     setTitle(s.title);
     setExcerpt(s.excerpt);
-    setBody(s.body);
+    setBody(splitGalleryBody(s.body).body);
     setCategory(s.category);
     setSelectedCats(parseCategories(s.category, s.categories));
     setLocation(s.location);

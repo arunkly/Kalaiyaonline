@@ -6,15 +6,35 @@ import {
   type DeskStory,
 } from "@/lib/desk";
 
-function parseGalleryField(raw?: string | string[] | null) {
-  if (Array.isArray(raw)) return raw.filter((v) => typeof v === "string" && v.trim());
-  if (!raw || typeof raw !== "string") return [] as string[];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string" && Boolean(v.trim())) : [];
-  } catch {
-    return [];
+const GALLERY_MARK = "<!--KO-GALLERY-->";
+
+export function splitGalleryBody(body: string) {
+  const text = String(body || "");
+  const idx = text.indexOf(GALLERY_MARK);
+  if (idx < 0) return { body: text.trim(), urls: [] as string[] };
+  return { body: text.slice(0, idx).trim(), urls: [] as string[] };
+}
+
+export function parseGalleryField(raw?: string | string[] | null) {
+  if (Array.isArray(raw)) {
+    return raw.filter((v): v is string => typeof v === "string" && Boolean(v.trim()));
   }
+  if (!raw) return [] as string[];
+  if (typeof raw !== "string") return [] as string[];
+  const trimmed = raw.trim();
+  if (!trimmed) return [] as string[];
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((v): v is string => typeof v === "string" && Boolean(v.trim()));
+    }
+  } catch {
+    /* newline / comma list */
+  }
+  return trimmed
+    .split(/[\n,]+/)
+    .map((part) => part.trim())
+    .filter((part) => /^https?:\/\//i.test(part));
 }
 
 export function storyTimestamp(value: unknown): string {
@@ -69,13 +89,14 @@ export function storyPublishIso(story: { slug?: string; createdAt?: unknown }): 
 
 export function deskToArticle(s: DeskStory): Article {
   const date = storyPublishIso(s);
-  const bodyText = typeof s.body === "string" ? s.body : String(s.body ?? "");
+  const rawBody = typeof s.body === "string" ? s.body : String(s.body ?? "");
+  const split = splitGalleryBody(rawBody);
   const tagText = typeof s.tags === "string" ? s.tags : "";
   return {
     slug: String(s.slug || ""),
     title: String(s.title || ""),
     excerpt: String(s.excerpt ?? ""),
-    body: bodyText
+    body: split.body
       .split(/\n{2,}/)
       .map((p) => p.trim())
       .filter(Boolean),
@@ -89,7 +110,7 @@ export function deskToArticle(s: DeskStory): Article {
     date,
     location: String(s.location || "कलैया"),
     imageUrl: s.imageUrl || undefined,
-    gallery: parseGalleryField(s.galleryUrls),
+    gallery: [],
     featured: true,
     sourceUrl: `https://kalaiyaonline.com/${s.slug}/`,
     lang: "np",
@@ -143,7 +164,7 @@ export function useEditionArticle(slug: string) {
   }, [slug]);
 
   return {
-    article: fromList ?? fetched,
+    article: fetched ?? fromList,
     missing: failed && !fromList,
   };
 }

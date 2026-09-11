@@ -11,7 +11,7 @@ import { TextResizer } from "@/components/text-resizer";
 import { articleCategories, byLatest, displayTitle, toNpDigits } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
 import { getPublishedStory } from "@/lib/desk";
-import { useEdition, useEditionArticle } from "@/lib/edition";
+import { deskToArticle, useEdition, useEditionArticle } from "@/lib/edition";
 import { getStoryEngagement } from "@/lib/engagement";
 import { usePrefs } from "@/lib/prefs";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
@@ -62,7 +62,18 @@ export const Route = createFileRoute("/article/$slug")({
 
 function ArticlePage() {
   const { slug } = Route.useParams();
-  const { article, missing } = useEditionArticle(slug);
+  const loaded = Route.useLoaderData();
+  const fromLoader = loaded
+    ? (() => {
+        try {
+          return deskToArticle(loaded);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+  const { article: editionArticle, missing } = useEditionArticle(slug);
+  const article = fromLoader ?? editionArticle;
   const edition = useEdition();
   const { toggleSaved, isSaved, textScale } = usePrefs();
   const cats = useCategories();
@@ -79,7 +90,7 @@ function ArticlePage() {
       .catch(() => undefined);
   }, [slug]);
 
-  if (missing) {
+  if (!article && missing) {
     return (
       <div className="mx-auto max-w-3xl py-16 text-center">
         <p className="kicker">समाचार</p>
@@ -172,14 +183,6 @@ function ArticlePage() {
           <figure className="mt-6 px-5 sm:px-8">
             <img src={article.imageUrl} alt={title} className="max-h-[32rem] w-full rounded-2xl object-cover" />
           </figure>
-        ) : null}
-
-        {article.gallery?.length ? (
-          <div className="mt-4 grid gap-3 px-5 sm:grid-cols-2 sm:px-8">
-            {article.gallery.map((src) => (
-              <img key={src} src={src} alt="" className="h-56 w-full rounded-2xl object-cover" />
-            ))}
-          </div>
         ) : null}
 
         <div className="px-5 py-8 sm:px-8">
