@@ -52,39 +52,37 @@ function Home() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-14 py-6 sm:py-8">
+    <div className="mx-auto max-w-4xl py-6 sm:py-8">
       {stories.map((article) => (
-        <Link
-          key={article.slug}
-          to="/article/$slug"
-          params={{ slug: article.slug }}
-          className="block"
-        >
-          <h2 className="text-center font-display text-[35px] font-bold leading-[1.25] text-ink md:text-[40px] lg:text-[60px]">
-            {displayTitle(article)}
-          </h2>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-crimson/20 bg-chip px-3 py-1.5">
-              <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover" />
-              <span className="text-sm font-bold text-crimson">कलैयाअनलाइन</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
-              <CalendarDays className="size-4 text-mark" />
-              {formatBsDateTime(article.date)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
-              <MessageSquare className="size-4 text-crimson" />
-              {toNpDigits(comments[article.slug] ?? 0)}
-            </span>
+        <div key={article.slug}>
+          <Link to="/article/$slug" params={{ slug: article.slug }} className="block">
+            <h2 className="text-center font-display text-[35px] font-bold leading-[1.25] text-ink md:text-[40px] lg:text-[60px]">
+              {displayTitle(article)}
+            </h2>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-crimson/20 bg-chip px-3 py-1.5">
+                <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover" />
+                <span className="text-sm font-bold text-crimson">कलैयाअनलाइन</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
+                <CalendarDays className="size-4 text-mark" />
+                {formatBsDateTime(article.date)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-soft">
+                <MessageSquare className="size-4 text-crimson" />
+                {toNpDigits(comments[article.slug] ?? 0)}
+              </span>
+            </div>
+            {article.imageUrl ? (
+              <img src={article.imageUrl} alt="" className="mt-6 w-full object-cover" />
+            ) : null}
+          </Link>
+          <div className="my-10 flex items-center gap-3" aria-hidden>
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent via-line-strong to-mark/70" />
+            <span className="size-1.5 rotate-45 bg-crimson" />
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent via-line-strong to-mark/70" />
           </div>
-          {article.imageUrl ? (
-            <img
-              src={article.imageUrl}
-              alt=""
-              className="mt-6 w-full object-cover"
-            />
-          ) : null}
-        </Link>
+        </div>
       ))}
     </div>
   );
