@@ -84,11 +84,10 @@ export function PostSidebar({
                 params={{ slug: a.slug }}
                 className="flex gap-3 p-3 hover:bg-[#E8F5E9]"
               >
-                {numbered ? (
-                  <span className="w-8 shrink-0 font-display text-2xl font-semibold text-[#E87722]">
-                    {toNpDigits(i + 1)}
-                  </span>
-                ) : a.imageUrl ? (
+                <span className="w-7 shrink-0 pt-0.5 font-display text-xl font-semibold leading-none text-[#E87722]">
+                  {toNpDigits(i + 1)}
+                </span>
+                {a.imageUrl ? (
                   <img src={a.imageUrl} alt="" className="size-16 shrink-0 rounded-lg object-cover" />
                 ) : (
                   <span className="size-16 shrink-0 rounded-lg bg-chip" />

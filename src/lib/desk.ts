@@ -89,6 +89,17 @@ async function ensureDesk() {
   await sql`alter table desk_stories add column if not exists deleted_at timestamptz`;
   await sql`alter table desk_stories add column if not exists updated_at timestamptz not null default now()`;
   await sql`create index if not exists desk_stories_published_idx on desk_stories (published)`;
+  for (const cat of [
+    { slug: "news", label: "समाचार" },
+    { slug: "international", label: "अन्तर्राष्ट्रिय" },
+    { slug: "tech", label: "टेक" },
+  ]) {
+    await sql`
+      insert into desk_categories (slug, label)
+      values (${cat.slug}, ${cat.label})
+      on conflict (slug) do nothing
+    `;
+  }
   return sql;
 }
 

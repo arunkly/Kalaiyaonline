@@ -25,11 +25,14 @@ export const HEADLINE_SLUG = "headline";
 export const CATEGORIES: { slug: Category; label: string; labelNp: string }[] = [
   { slug: "headline", label: "Headline", labelNp: "हेडलाइन" },
   { slug: "local", label: "Local", labelNp: "स्थानीय" },
+  { slug: "news", label: "News", labelNp: "समाचार" },
+  { slug: "international", label: "International", labelNp: "अन्तर्राष्ट्रिय" },
   { slug: "politics", label: "Politics", labelNp: "राजनीति" },
   { slug: "crime", label: "Crime", labelNp: "अपराध" },
   { slug: "business", label: "Business", labelNp: "व्यापार" },
   { slug: "health", label: "Health", labelNp: "स्वास्थ्य" },
   { slug: "sports", label: "Sports", labelNp: "खेलकुद" },
+  { slug: "tech", label: "Tech", labelNp: "टेक" },
   { slug: "community", label: "Community", labelNp: "समुदाय" },
   { slug: "development", label: "Development", labelNp: "विकास" },
 ];
