@@ -71,6 +71,14 @@ export function AccountMenu() {
           >
             मेरो प्रोफाइल
           </Link>
+          <Link
+            to="/account"
+            search={{ tab: "password" }}
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-3 py-2 text-sm hover:bg-chip"
+          >
+            पासवर्ड परिवर्तन
+          </Link>
           {isAdminEmail(user.primaryEmail) ? (
             <Link
               to="/admin"
