@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { z } from "zod";
+import { byLatest } from "@/data/articles";
 import { ArticleCard } from "@/components/article-card";
 import { useEdition } from "@/lib/edition";
 
@@ -21,12 +22,14 @@ function SearchPage() {
   const results = useMemo(() => {
     const n = q.trim().toLowerCase();
     if (!n) return [];
-    return edition.filter((a) =>
-      [a.title, a.titleNp ?? "", a.excerpt, a.tags.join(" "), a.location, a.category]
-        .join(" ")
-        .toLowerCase()
-        .includes(n),
-    );
+    return edition
+      .filter((a) =>
+        [a.title, a.titleNp ?? "", a.excerpt, a.tags.join(" "), a.location, a.category]
+          .join(" ")
+          .toLowerCase()
+          .includes(n),
+      )
+      .sort(byLatest);
   }, [q, edition]);
 
   return (
