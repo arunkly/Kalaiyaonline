@@ -73,8 +73,8 @@ export function isHeadlineArticle(article: { category?: string; categories?: str
   return articleCategories(article).some(isHeadline);
 }
 
-export function latestArticles() {
-  return [...articles].sort((a, b) => (a.date < b.date ? 1 : -1));
+export function byLatest<T extends { date?: string }>(a: T, b: T) {
+  return String(b.date || "").localeCompare(String(a.date || ""));
 }
 
 export function searchArticles(q: string) {
