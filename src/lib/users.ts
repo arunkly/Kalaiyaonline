@@ -82,12 +82,32 @@ export const listAppUsers = createServerFn({ method: "GET" })
     const roles = await sql<{ userId: string; role: string }>`
       select user_id as "userId", role from user_roles
     `;
+    const profiles = await sql<{ userId: string; displayName: string }>`
+      select user_id as "userId", display_name as "displayName" from member_profiles
+    `;
     return users.map((u) => ({
       id: u.id,
-      name: u.name,
+      name: profiles.find((p) => p.userId === u.id)?.displayName || u.name,
       email: u.email,
       role: (roles.find((r) => r.userId === u.id)?.role as AppRole) || (isAdminEmail(u.email) ? "admin" : "member"),
     })) satisfies AppUserRow[];
+  });
+
+export const setUserName = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ userId: z.string().min(1).max(80), name: z.string().trim().min(1).max(80) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const name = data.name.trim();
+    await sql`update "user" set name = ${name} where id = ${data.userId}`;
+    await sql`
+      insert into member_profiles (user_id, display_name, updated_at)
+      values (${data.userId}, ${name}, now())
+      on conflict (user_id) do update set display_name = excluded.display_name, updated_at = now()
+    `;
+    return { ok: true };
   });
 
 export const setUserRole = createServerFn({ method: "POST" })

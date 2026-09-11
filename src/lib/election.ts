@@ -155,6 +155,21 @@ export type ElectionData = {
   };
   display?: DisplayPlan;
   frontPage?: "hor" | "local";
+  politicians?: Politician[];
+};
+
+export type Politician = {
+  id: string;
+  name: string;
+  party: string;
+  partySlug: string;
+  photo: string;
+  bio: string;
+  post: string;
+  place: string;
+  phone: string;
+  email: string;
+  education: string;
 };
 
 export const LOCAL_BODY_TYPES = [
@@ -172,6 +187,65 @@ export const LOCAL_POSTS = [
 
 export function localBodiesOf(data: ElectionData = election): LocalBody[] {
   return data.localBodies ?? [];
+}
+
+export const BARA_LOCAL_SEED: LocalBody[] = [
+  { id: "kalaiya", name: "कलैया उपमहानगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "upamahanagar", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "jitpursimara", name: "जीतपुरसिमरा उपमहानगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "upamahanagar", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "kolhabi", name: "कोल्हवी नगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "nijgadh", name: "निजगढ नगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "mahagadhimai", name: "महागढीमाई नगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "simraungadh", name: "सिम्रौनगढ नगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "pacharauta", name: "पचरौता नगरपालिका", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "adarshkotwal", name: "आदर्श कोटवाल गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "karaiyamai", name: "करैयामाई गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "devtal", name: "देवताल गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "parwanipur", name: "परवानीपुर गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "pheta", name: "फेटा गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "baragadhi", name: "बारागढी गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "bishrampur", name: "विश्रामपुर गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "subarna", name: "सुवर्ण गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+  { id: "prasauni", name: "प्रसौनी गाउँपालिका", districtEn: "Bara", districtNp: "बारा", type: "gaunpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 },
+];
+
+export function isBaraSeat(c: { districtEn?: string; districtNp?: string }) {
+  return c.districtEn === "Bara" || c.districtNp === "बारा";
+}
+
+export function baraSeats(data: ElectionData = election): Constituency[] {
+  return data.constituencies.filter(isBaraSeat).sort((a, b) => a.seat - b.seat);
+}
+
+export function baraLocals(data: ElectionData = election): LocalBody[] {
+  const rows = localBodiesOf(data).filter((b) => b.districtEn === "Bara" || b.districtNp === "बारा");
+  return rows.length ? rows : BARA_LOCAL_SEED;
+}
+
+export function politiciansOf(data: ElectionData = election): Politician[] {
+  return (data.politicians ?? []).map((p) => ({
+    ...p,
+    phone: p.phone || "",
+    email: p.email || "",
+    education: p.education || "",
+  }));
+}
+
+export function getPolitician(id: string, data: ElectionData = election): Politician | undefined {
+  return politiciansOf(data).find((p) => p.id === id);
+}
+
+export function findPoliticianFor(name: string, data: ElectionData = election): Politician | undefined {
+  const n = name.trim();
+  if (!n) return undefined;
+  return politiciansOf(data).find((p) => p.name.trim() === n);
+}
+
+export function hydrateElection(data: ElectionData): ElectionData {
+  const next = structuredClone(data);
+  if (!next.localBodies?.length) next.localBodies = BARA_LOCAL_SEED.map((b) => ({ ...b }));
+  if (!next.politicians) next.politicians = [];
+  if (next.frontPage !== "local") next.frontPage = "hor";
+  return next;
 }
 
 export function syncLocalBody(body: LocalBody): LocalBody {

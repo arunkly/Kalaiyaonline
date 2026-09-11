@@ -21,8 +21,8 @@ function storyScore(views: number, likes: number, comments: number, createdAt: s
   return (views + 1) * recencyBoost(createdAt) + likes * 3 + comments * 5;
 }
 
-function splitTags(raw: string) {
-  return raw
+function splitTags(raw: unknown) {
+  return String(raw ?? "")
     .split(/[,،،|]+/)
     .map((t) => t.trim().replace(/^#/, ""))
     .filter((t) => t.length >= 2 && t.length <= 32);

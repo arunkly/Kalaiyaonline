@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { ElectionProvider, useElection } from "@/lib/election-live";
-import { LOCAL_BODY_TYPES, LOCAL_POSTS, formatInt, localBodiesOf, partyTone, pct } from "@/lib/election";
+import { LOCAL_BODY_TYPES, LOCAL_POSTS, findPoliticianFor, formatInt, localBodiesOf, partyTone, pct } from "@/lib/election";
+import { PoliticiansSidebar } from "@/components/election-people";
 
 export const Route = createFileRoute("/election/local/$id")({ component: LocalRoute });
 
@@ -32,7 +33,8 @@ function LocalPage() {
   const postLabel = LOCAL_POSTS.find((p) => p.id === body.post)?.label ?? body.post;
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <div className="min-w-0 space-y-6">
       <Link to="/election" className="inline-flex items-center gap-2 text-sm text-muted hover:text-crimson">
         <ArrowLeft className="size-4" />
         सबै नतिजा
@@ -49,24 +51,37 @@ function LocalPage() {
       <section className="rounded-[1.5rem] bg-white p-5 sm:p-8">
         <h2 className="font-display text-2xl">उम्मेदवार</h2>
         <ul className="mt-4 space-y-3">
-          {body.candidates.map((c) => (
-            <li key={c.id} className="rounded-2xl border border-line p-4">
-              <div className="flex items-baseline justify-between gap-3">
-                <div>
-                  <p className="font-display text-lg">
-                    {c.name} {c.winner ? <span className="text-sm text-[#14934e]">विजयी</span> : null}
-                  </p>
-                  <p className="text-xs text-muted">{c.party}</p>
+          {body.candidates.map((c) => {
+            const person = findPoliticianFor(c.name, data);
+            const photo = c.photo || person?.photo;
+            return (
+              <li key={c.id} className="rounded-2xl border border-line p-4">
+                <div className="flex items-center gap-3">
+                  {photo ? (
+                    <img src={photo} alt="" className="size-14 shrink-0 rounded-full object-cover" />
+                  ) : (
+                    <span className="grid size-14 shrink-0 place-items-center rounded-full bg-chip font-bold text-crimson">
+                      {c.name.slice(0, 1)}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-lg">
+                      {c.name} {c.winner ? <span className="text-sm text-[#14934e]">विजयी</span> : null}
+                    </p>
+                    <p className="text-xs text-muted">{c.party}</p>
+                  </div>
+                  <p className="tabular-nums">{formatInt(c.votes)}</p>
                 </div>
-                <p className="tabular-nums">{formatInt(c.votes)}</p>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-chip">
-                <div className="h-full rounded-full" style={{ width: `${pct(c.votes, maxVotes)}%`, background: partyTone(c.partySlug) }} />
-              </div>
-            </li>
-          ))}
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-chip">
+                  <div className="h-full rounded-full" style={{ width: `${pct(c.votes, maxVotes)}%`, background: partyTone(c.partySlug) }} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </section>
+    </div>
+    <PoliticiansSidebar data={data} />
     </div>
   );
 }

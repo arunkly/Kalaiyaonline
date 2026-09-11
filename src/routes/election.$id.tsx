@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { ElectionProvider, useElection } from "@/lib/election-live";
-import { formatInt, getConstituency, partyShort, partyTone, pct, seatLabel } from "@/lib/election";
+import { formatInt, findPoliticianFor, getConstituency, partyShort, partyTone, pct, seatLabel } from "@/lib/election";
+import { PoliticiansSidebar } from "@/components/election-people";
 
 export const Route = createFileRoute("/election/$id")({ component: SeatRoute });
 
@@ -34,7 +35,8 @@ function SeatPage() {
   const nearby = data.constituencies.filter((c) => c.districtEn === seat.districtEn && c.id !== seat.id);
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <div className="min-w-0 space-y-6">
       <Link to="/election" className="inline-flex items-center gap-2 text-sm text-muted hover:text-crimson">
         <ArrowLeft className="size-4" />
         सबै क्षेत्र
@@ -57,10 +59,19 @@ function SeatPage() {
       <section className="rounded-[1.5rem] bg-white p-5 sm:p-8">
         <h2 className="font-display text-2xl">उम्मेदवार</h2>
         <ul className="mt-4 space-y-3">
-          {seat.candidates.map((c) => (
-            <li key={c.id} className="rounded-2xl border border-line p-4">
-              <div className="flex items-baseline justify-between gap-3">
-                <div>
+          {seat.candidates.map((c) => {
+            const person = findPoliticianFor(c.name, data);
+            const photo = c.photo || person?.photo;
+            const card = (
+              <div className="flex items-center gap-3">
+                {photo ? (
+                  <img src={photo} alt="" className="size-14 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-chip font-bold text-crimson">
+                    {c.name.slice(0, 1)}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="font-display text-lg">
                     {c.name} {c.winner ? <span className="text-sm text-[#14934e]">विजयी</span> : null}
                   </p>
@@ -68,11 +79,22 @@ function SeatPage() {
                 </div>
                 <p className="tabular-nums">{formatInt(c.votes)}</p>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-chip">
-                <div className="h-full rounded-full" style={{ width: `${pct(c.votes, maxVotes)}%`, background: partyTone(c.partySlug, c.winner ? "#14934e" : undefined) }} />
-              </div>
-            </li>
-          ))}
+            );
+            return (
+              <li key={c.id} className="rounded-2xl border border-line p-4">
+                {person ? (
+                  <Link to="/politician/$id" params={{ id: person.id }} className="block">
+                    {card}
+                  </Link>
+                ) : (
+                  card
+                )}
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-chip">
+                  <div className="h-full rounded-full" style={{ width: `${pct(c.votes, maxVotes)}%`, background: partyTone(c.partySlug, c.winner ? "#14934e" : undefined) }} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </section>
       {nearby.length ? (
@@ -90,6 +112,8 @@ function SeatPage() {
           </ul>
         </section>
       ) : null}
+    </div>
+    <PoliticiansSidebar data={data} />
     </div>
   );
 }

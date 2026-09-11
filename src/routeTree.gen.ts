@@ -36,8 +36,10 @@ import { Route as DirectoryIdRouteImport } from './routes/directory.$id'
 import { Route as ElectionIdRouteImport } from './routes/election.$id'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as MemberIdRouteImport } from './routes/member.$id'
+import { Route as PoliticianIdRouteImport } from './routes/politician.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ElectionLocalIdRouteImport } from './routes/election.local.$id'
+import { Route as ElectionPoliticianIdRouteImport } from './routes/election.politician.$id'
 import { Route as ShareImageArticleSlugRouteImport } from './routes/share-image.article.$slug'
 import { Route as ShareImageDirectoryIdRouteImport } from './routes/share-image.directory.$id'
 import { Route as ShareImageGallerySlugRouteImport } from './routes/share-image.gallery.$slug'
@@ -177,6 +179,11 @@ const MemberIdRoute = MemberIdRouteImport.update({
   path: '/member/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliticianIdRoute = PoliticianIdRouteImport.update({
+  id: '/politician/$id',
+  path: '/politician/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -185,6 +192,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 const ElectionLocalIdRoute = ElectionLocalIdRouteImport.update({
   id: '/local/$id',
   path: '/local/$id',
+  getParentRoute: () => ElectionRoute,
+} as any)
+const ElectionPoliticianIdRoute = ElectionPoliticianIdRouteImport.update({
+  id: '/politician/$id',
+  path: '/politician/$id',
   getParentRoute: () => ElectionRoute,
 } as any)
 const ShareImageArticleSlugRoute = ShareImageArticleSlugRouteImport.update({
@@ -231,8 +243,10 @@ export interface FileRoutesByFullPath {
   '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
+  '/politician/$id': typeof PoliticianIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/election/politician/$id': typeof ElectionPoliticianIdRoute
   '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
   '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
   '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
@@ -265,8 +279,10 @@ export interface FileRoutesByTo {
   '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
+  '/politician/$id': typeof PoliticianIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/election/politician/$id': typeof ElectionPoliticianIdRoute
   '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
   '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
   '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
@@ -300,8 +316,10 @@ export interface FileRoutesById {
   '/election/$id': typeof ElectionIdRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
+  '/politician/$id': typeof PoliticianIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/election/local/$id': typeof ElectionLocalIdRoute
+  '/election/politician/$id': typeof ElectionPoliticianIdRoute
   '/share-image/article/$slug': typeof ShareImageArticleSlugRoute
   '/share-image/directory/$id': typeof ShareImageDirectoryIdRoute
   '/share-image/gallery/$slug': typeof ShareImageGallerySlugRoute
@@ -336,8 +354,10 @@ export interface FileRouteTypes {
     | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
+    | '/politician/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/election/politician/$id'
     | '/share-image/article/$slug'
     | '/share-image/directory/$id'
     | '/share-image/gallery/$slug'
@@ -370,8 +390,10 @@ export interface FileRouteTypes {
     | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
+    | '/politician/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/election/politician/$id'
     | '/share-image/article/$slug'
     | '/share-image/directory/$id'
     | '/share-image/gallery/$slug'
@@ -404,8 +426,10 @@ export interface FileRouteTypes {
     | '/election/$id'
     | '/gallery/$slug'
     | '/member/$id'
+    | '/politician/$id'
     | '/api/auth/$'
     | '/election/local/$id'
+    | '/election/politician/$id'
     | '/share-image/article/$slug'
     | '/share-image/directory/$id'
     | '/share-image/gallery/$slug'
@@ -435,6 +459,7 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategorySlugRoute: typeof CategorySlugRoute
   MemberIdRoute: typeof MemberIdRoute
+  PoliticianIdRoute: typeof PoliticianIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ShareImageArticleSlugRoute: typeof ShareImageArticleSlugRoute
   ShareImageDirectoryIdRoute: typeof ShareImageDirectoryIdRoute
@@ -632,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MemberIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/politician/$id': {
+      id: '/politician/$id'
+      path: '/politician/$id'
+      fullPath: '/politician/$id'
+      preLoaderRoute: typeof PoliticianIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -644,6 +676,13 @@ declare module '@tanstack/react-router' {
       path: '/local/$id'
       fullPath: '/election/local/$id'
       preLoaderRoute: typeof ElectionLocalIdRouteImport
+      parentRoute: typeof ElectionRoute
+    }
+    '/election/politician/$id': {
+      id: '/election/politician/$id'
+      path: '/politician/$id'
+      fullPath: '/election/politician/$id'
+      preLoaderRoute: typeof ElectionPoliticianIdRouteImport
       parentRoute: typeof ElectionRoute
     }
     '/share-image/article/$slug': {
@@ -695,11 +734,13 @@ const DirectoryRouteWithChildren = DirectoryRoute._addFileChildren(
 interface ElectionRouteChildren {
   ElectionIdRoute: typeof ElectionIdRoute
   ElectionLocalIdRoute: typeof ElectionLocalIdRoute
+  ElectionPoliticianIdRoute: typeof ElectionPoliticianIdRoute
 }
 
 const ElectionRouteChildren: ElectionRouteChildren = {
   ElectionIdRoute: ElectionIdRoute,
   ElectionLocalIdRoute: ElectionLocalIdRoute,
+  ElectionPoliticianIdRoute: ElectionPoliticianIdRoute,
 }
 
 const ElectionRouteWithChildren = ElectionRoute._addFileChildren(
@@ -741,6 +782,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategorySlugRoute: CategorySlugRoute,
   MemberIdRoute: MemberIdRoute,
+  PoliticianIdRoute: PoliticianIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ShareImageArticleSlugRoute: ShareImageArticleSlugRoute,
   ShareImageDirectoryIdRoute: ShareImageDirectoryIdRoute,

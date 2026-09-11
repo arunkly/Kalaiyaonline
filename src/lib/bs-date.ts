@@ -40,7 +40,7 @@ export function availableBsYears() {
 }
 
 export function adToBs(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
+  const [y, m, d] = String(iso || "").split("-").map(Number);
   if (!y || !m || !d) return null;
   const utc = Date.UTC(y, m - 1, d);
   let remaining = Math.round((utc - AD_EPOCH) / 86400000);
