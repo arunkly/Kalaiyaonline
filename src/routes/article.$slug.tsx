@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bookmark, BookmarkCheck, CalendarDays, Eye, MessageSquare } from "lucide-react";
+import { Bookmark, BookmarkCheck, Eye, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
@@ -8,8 +8,8 @@ import { PostSidebar } from "@/components/post-sidebar";
 import { ShareBar } from "@/components/share-bar";
 import { StoryEngage } from "@/components/story-engage";
 import { TextResizer } from "@/components/text-resizer";
-import { articleCategories, displayTitle, toNpDigits } from "@/data/articles";
-import { formatBsDate } from "@/lib/bs-date";
+import { articleCategories, byLatest, displayTitle, toNpDigits } from "@/data/articles";
+import { formatBsDateTime } from "@/lib/bs-date";
 import { getPublishedStory } from "@/lib/desk";
 import { useEdition, useEditionArticle } from "@/lib/edition";
 import { getStoryEngagement } from "@/lib/engagement";
@@ -108,6 +108,7 @@ function ArticlePage() {
   const mine = articleCategories(article);
   const related = edition
     .filter((a) => a.slug !== article.slug && articleCategories(a).some((c) => mine.includes(c)))
+    .sort(byLatest)
     .slice(0, 2);
   const paragraphs = article.body.length ? article.body : [article.excerpt];
 
@@ -118,47 +119,45 @@ function ArticlePage() {
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="min-w-0">
       <div className="overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-sm">
-        <header className="px-5 pt-6 text-center sm:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {articleCategories(article).map((slug) => (
-              <Link
-                key={slug}
-                to="/category/$slug"
-                params={{ slug }}
-                className="inline-flex rounded-full bg-chip px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-crimson"
-              >
-                {categoryLabel(cats, slug)}
-              </Link>
+        <header className="px-5 pt-7 text-center sm:px-10">
+          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[13px] font-semibold text-crimson">
+            {articleCategories(article).map((slug, i) => (
+              <span key={slug} className="inline-flex items-center gap-2">
+                {i > 0 ? <span className="text-line-strong">·</span> : null}
+                <Link to="/category/$slug" params={{ slug }} className="hover:underline">
+                  {categoryLabel(cats, slug)}
+                </Link>
+              </span>
             ))}
-          </div>
-          <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">{title}</h1>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-crimson/20 bg-chip px-3 py-1.5">
-              <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover" />
-              <span className="text-sm font-bold text-crimson">कलैयाअनलाइन</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
-              <CalendarDays className="size-4 text-mark" />
-              {formatBsDate(article.date)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
-              <MessageSquare className="size-4 text-crimson" />
+          </p>
+          <h1 className="mt-3 font-display text-3xl font-bold leading-[1.25] text-ink sm:text-[2.6rem]">
+            {title}
+          </h1>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted">
+            <span className="font-semibold text-ink-soft">कलैयाअनलाइन</span>
+            <span className="text-line-strong">·</span>
+            <span>{formatBsDateTime(article.date)}</span>
+            <span className="text-line-strong">·</span>
+            <span className="inline-flex items-center gap-1">
+              <MessageSquare className="size-3.5" />
               {toNpDigits(comments)}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
-              <Eye className="size-4 text-crimson" />
+            <span className="text-line-strong">·</span>
+            <span className="inline-flex items-center gap-1">
+              <Eye className="size-3.5" />
               {toNpDigits(views)}
             </span>
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 pb-2">
+          <div className="mx-auto mt-5 h-px max-w-xs bg-line" />
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3 pb-1">
             <TextResizer />
             <button
               type="button"
               onClick={() => toggleSaved(article.slug)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-paper px-3 text-sm font-medium hover:border-crimson"
+              className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-crimson"
             >
               {saved ? <BookmarkCheck className="size-4 text-crimson" /> : <Bookmark className="size-4" />}
-              {saved ? "सुरक्षित छ" : "सेभ गर्नुहोस्"}
+              {saved ? "सुरक्षित" : "सेभ"}
             </button>
           </div>
         </header>
