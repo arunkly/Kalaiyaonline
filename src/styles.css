@@ -117,6 +117,20 @@
     animation-play-state: paused;
   }
 
+  .news-ticker-mask {
+    mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+  }
+
+  .news-ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker-scroll 42s linear infinite;
+  }
+
+  .news-ticker-track:hover {
+    animation-play-state: paused;
+  }
+
   .notice-bell-live {
     animation: notice-pulse 1.6s ease-out infinite;
   }
