@@ -1,13 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
-import { isHeadline, type Article } from "@/data/articles";
+import { isHeadline, formatDate, type Article } from "@/data/articles";
 import { listGalleryPosts, type GalleryPost } from "@/lib/gallery-desk";
 import { listDirCategories, listDirEntries, type DirCategory, type DirItem } from "@/lib/directory-desk";
 import { DirectoryListing } from "@/components/directory-listing";
-import { ElectionStrip } from "@/components/election-strip";
 import { PostSidebar } from "@/components/post-sidebar";
 import { useFeatures } from "@/components/features-provider";
+import { getStoryEngagement } from "@/lib/engagement";
 import { useEdition } from "@/lib/edition";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +28,7 @@ function Home() {
   const [albums, setAlbums] = useState<GalleryPost[]>([]);
   const [places, setPlaces] = useState<DirItem[]>([]);
   const [dirCats, setDirCats] = useState<DirCategory[]>([]);
+  const [comments, setComments] = useState<Record<string, number>>({});
   useEffect(() => {
     void listGalleryPosts()
       .then(setAlbums)
@@ -42,9 +43,27 @@ function Home() {
 
   const all = useMemo(() => [...edition].sort((a, b) => (a.date < b.date ? 1 : -1)), [edition]);
   const headlines = all.filter((a) => isHeadline(a.category));
-  const hero = headlines[0];
-  const moreHeadlines = headlines.slice(1, 6);
-  const pool = all.filter((a) => !isHeadline(a.category));
+  const topTwo = useMemo(() => {
+    if (headlines.length >= 2) return headlines.slice(0, 2);
+    const rest = all.filter((a) => !headlines.some((h) => h.slug === a.slug));
+    return [...headlines, ...rest].slice(0, 2);
+  }, [all, headlines]);
+  const pool = all.filter((a) => !topTwo.some((h) => h.slug === a.slug) && !isHeadline(a.category));
+
+  useEffect(() => {
+    if (!topTwo.length) return;
+    void Promise.all(
+      topTwo.map((a) =>
+        getStoryEngagement({ data: { slug: a.slug } })
+          .then((row) => [a.slug, row.comments.length] as const)
+          .catch(() => [a.slug, 0] as const),
+      ),
+    ).then((rows) => {
+      const map: Record<string, number> = {};
+      for (const [slug, n] of rows) map[slug] = n;
+      setComments(map);
+    });
+  }, [topTwo]);
 
   const orderedCats = useMemo(() => {
     const rest = cats.filter((c) => c.slug !== "headline" && !SECTION_ORDER.includes(c.slug));
@@ -63,53 +82,52 @@ function Home() {
   return (
     <div className="space-y-8">
       <AdSlot slot="home-top" />
-      <ElectionStrip />
 
-      {hero ? (
-        <ArticleCard article={hero} variant="hero" />
+      <div className="flex items-center justify-between border-y border-line py-2 text-xs font-semibold text-muted">
+        <span>आज · {formatDate(new Date())}</span>
+        <span>कलैया · बारा · मधेश</span>
+      </div>
+
+      {topTwo.length ? (
+        <section className="grid gap-10 md:grid-cols-2 md:gap-8">
+          {topTwo.map((a) => (
+            <ArticleCard key={a.slug} article={a} variant="headline" comments={comments[a.slug] ?? 0} />
+          ))}
+        </section>
       ) : (
-        <div className="rounded-[1.75rem] border border-dashed border-[#b3c7ba] bg-white px-5 py-16 text-center">
-          <p className="font-display text-3xl">हेडलाइन छैन</p>
+        <div className="rounded-lg border border-dashed border-line-strong bg-surface px-5 py-16 text-center">
+          <p className="font-display text-3xl font-extrabold">हेडलाइन छैन</p>
+          <p className="mt-2 text-sm text-muted">नयाँ समाचार प्रकाशित हुनेबित्तिकै यहाँ देखिन्छ।</p>
         </div>
       )}
 
-      {moreHeadlines.length ? (
-        <section>
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <p className="font-display text-2xl">थप हेडलाइन</p>
-            <Link to="/category/$slug" params={{ slug: "headline" }} className="text-sm font-semibold text-[#14934e]">
-              सबै
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {moreHeadlines.map((a) => (
-              <ArticleCard key={a.slug} article={a} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="space-y-10 lg:col-span-8">
-          {sections.map((section) => (
-            <section key={section.slug}>
-              <div className="mb-4 flex items-end justify-between gap-3">
-                <p className="font-display text-2xl">{section.label}</p>
-                <Link
-                  to="/category/$slug"
-                  params={{ slug: section.slug }}
-                  className="text-sm font-semibold text-[#14934e]"
-                >
-                  सबै
-                </Link>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {section.items.map((a) => (
-                  <ArticleCard key={a.slug} article={a} />
-                ))}
-              </div>
-            </section>
-          ))}
+      <div className="grid gap-8 lg:grid-cols-12">
+        <div className="space-y-12 lg:col-span-8">
+          {sections.map((section) => {
+            const [lead, ...rest] = section.items;
+            return (
+              <section key={section.slug}>
+                <div className="mb-4 flex items-end justify-between gap-3">
+                  <h2 className="section-title flex-1">{section.label}</h2>
+                  <Link
+                    to="/category/$slug"
+                    params={{ slug: section.slug }}
+                    className="shrink-0 text-sm font-bold text-crimson"
+                  >
+                    सबै
+                  </Link>
+                </div>
+                {lead ? <ArticleCard article={lead} variant="lead" /> : null}
+                {rest.length ? (
+                  <div className="mt-1">
+                    {rest.map((a) => (
+                      <ArticleCard key={a.slug} article={a} variant="compact" />
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })}
         </div>
         <div className="lg:col-span-4">
           <PostSidebar articles={all} limit={10} numbered />
@@ -119,10 +137,10 @@ function Home() {
       {features.gallery || features.directory ? (
         <div className="grid min-w-0 gap-6 lg:grid-cols-2">
           {features.gallery ? (
-            <section className="min-w-0 overflow-hidden rounded-[1.5rem] bg-white p-4">
+            <section className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="font-display text-2xl">ग्यालरी</p>
-                <Link to="/gallery" className="text-sm font-semibold text-[#14934e]">
+                <h2 className="section-title flex-1">ग्यालरी</h2>
+                <Link to="/gallery" className="text-sm font-bold text-crimson">
                   सबै
                 </Link>
               </div>
@@ -135,14 +153,16 @@ function Home() {
                         key={g.slug}
                         to="/gallery/$slug"
                         params={{ slug: g.slug }}
-                        className="w-40 shrink-0 snap-start sm:w-36"
+                        className="relative w-44 shrink-0 snap-start overflow-hidden rounded-md sm:w-40"
                       >
                         {thumb ? (
-                          <img src={thumb} alt="" className="h-28 w-full rounded-xl object-cover sm:h-24" />
+                          <img src={thumb} alt="" className="h-36 w-full object-cover sm:h-32" />
                         ) : (
-                          <div className="h-28 rounded-xl bg-chip sm:h-24" />
+                          <div className="h-36 bg-chip sm:h-32" />
                         )}
-                        <p className="mt-2 line-clamp-2 text-sm">{g.title}</p>
+                        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink to-transparent p-2 pt-8">
+                          <p className="line-clamp-2 text-sm font-semibold text-paper">{g.title}</p>
+                        </span>
                       </Link>
                     );
                   })}
@@ -151,15 +171,15 @@ function Home() {
             </section>
           ) : null}
           {features.directory ? (
-            <section className="rounded-[1.5rem] bg-white p-4">
+            <section className="rounded-lg border border-line bg-surface p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="font-display text-2xl">डाइरेक्ट्री</p>
-                <Link to="/directory" className="text-sm font-semibold text-[#14934e]">
+                <h2 className="section-title flex-1">डाइरेक्ट्री</h2>
+                <Link to="/directory" className="text-sm font-bold text-crimson">
                   सबै
                 </Link>
               </div>
-              <ul className="space-y-2">
-                {places.slice(0, 4).map((d) => (
+              <ul className="space-y-1">
+                {places.slice(0, 5).map((d) => (
                   <li key={d.id}>
                     <DirectoryListing item={d} compact categoryLabel={dirCats.find((c) => c.slug === d.category)?.label} />
                   </li>
