@@ -20,9 +20,9 @@ function parseGalleryField(raw?: string | string[] | null) {
 export function deskToArticle(s: DeskStory): Article {
   const created = s.createdAt;
   const date =
-    typeof created === "string" && created.length >= 10
-      ? created.slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
+    typeof created === "string" && created
+      ? created
+      : new Date().toISOString();
   const bodyText = typeof s.body === "string" ? s.body : String(s.body ?? "");
   const tagText = typeof s.tags === "string" ? s.tags : "";
   return {
