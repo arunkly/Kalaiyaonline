@@ -6,6 +6,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 export const FEATURE_CATALOG = [
   { key: "market", label: "सेयर बजार", hint: "टिकर र सेयर पेज" },
   { key: "weather", label: "मौसम", hint: "हेडर मौसम बार" },
+  { key: "newsTicker", label: "समाचार टिकर", hint: "मौसममुनि ताजा समाचार स्क्रोल" },
   { key: "gallery", label: "ग्यालरी", hint: "फोटो ग्यालरी" },
   { key: "directory", label: "डाइरेक्ट्री", hint: "स्थानीय सूची" },
   { key: "blood", label: "रक्तदाता", hint: "रक्तदाता पोर्टल" },
@@ -25,6 +26,7 @@ export type FeatureFlags = Record<FeatureKey, boolean>;
 export const DEFAULT_FEATURES: FeatureFlags = {
   market: true,
   weather: true,
+  newsTicker: true,
   gallery: true,
   directory: true,
   blood: true,
