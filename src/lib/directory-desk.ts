@@ -83,7 +83,7 @@ export const listDirEntries = createServerFn({ method: "GET" }).handler(async ()
            image_url as "imageUrl", map_url as "mapUrl",
            lat, lng, views
     from dir_entries
-    order by name asc
+    order by created_at desc
   `;
 });
 
