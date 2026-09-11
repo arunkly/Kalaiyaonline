@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bookmark, BookmarkCheck, Eye } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarDays, Eye, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { AdSlot } from "@/components/ad-slot";
@@ -8,9 +8,11 @@ import { PostSidebar } from "@/components/post-sidebar";
 import { ShareBar } from "@/components/share-bar";
 import { StoryEngage } from "@/components/story-engage";
 import { TextResizer } from "@/components/text-resizer";
-import { displayTitle, formatDate, toNpDigits } from "@/data/articles";
+import { articleCategories, displayTitle, toNpDigits } from "@/data/articles";
+import { formatBsDate } from "@/lib/bs-date";
 import { getPublishedStory } from "@/lib/desk";
 import { useEdition, useEditionArticle } from "@/lib/edition";
+import { getStoryEngagement } from "@/lib/engagement";
 import { usePrefs } from "@/lib/prefs";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { incrementView } from "@/lib/views";
@@ -65,11 +67,15 @@ function ArticlePage() {
   const { toggleSaved, isSaved, textScale } = usePrefs();
   const cats = useCategories();
   const [views, setViews] = useState(0);
+  const [comments, setComments] = useState(0);
 
   useEffect(() => {
     if (!slug) return;
     void incrementView({ data: { kind: "story", key: slug } })
       .then((row) => setViews(row.views))
+      .catch(() => undefined);
+    void getStoryEngagement({ data: { slug } })
+      .then((row) => setComments(row.comments.length))
       .catch(() => undefined);
   }, [slug]);
 
@@ -99,8 +105,9 @@ function ArticlePage() {
 
   const title = displayTitle(article);
   const saved = isSaved(article.slug);
+  const mine = articleCategories(article);
   const related = edition
-    .filter((a) => a.slug !== article.slug && a.category === article.category)
+    .filter((a) => a.slug !== article.slug && articleCategories(a).some((c) => mine.includes(c)))
     .slice(0, 2);
   const paragraphs = article.body.length ? article.body : [article.excerpt];
 
@@ -112,19 +119,37 @@ function ArticlePage() {
       <div className="min-w-0">
       <div className="overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-sm">
         <header className="px-5 pt-6 text-center sm:px-8">
-          <p className="text-[11px] font-bold tracking-[0.16em] text-[#14934e]">
-            {categoryLabel(cats, article.category)}
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-bold leading-tight sm:text-5xl">{title}</h1>
-          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted">
-            <span>{article.author}</span>
-            <span>·</span>
-            <span>{formatDate(article.date)}</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[#14934e]">
-              <Eye className="size-4" />
-              {toNpDigits(views)} पटक हेरियो
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {articleCategories(article).map((slug) => (
+              <Link
+                key={slug}
+                to="/category/$slug"
+                params={{ slug }}
+                className="inline-flex rounded-full bg-chip px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-crimson"
+              >
+                {categoryLabel(cats, slug)}
+              </Link>
+            ))}
+          </div>
+          <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">{title}</h1>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-crimson/20 bg-chip px-3 py-1.5">
+              <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover" />
+              <span className="text-sm font-bold text-crimson">कलैयाअनलाइन</span>
             </span>
-          </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
+              <CalendarDays className="size-4 text-mark" />
+              {formatBsDate(article.date)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
+              <MessageSquare className="size-4 text-crimson" />
+              {toNpDigits(comments)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft">
+              <Eye className="size-4 text-crimson" />
+              {toNpDigits(views)}
+            </span>
+          </div>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 pb-2">
             <TextResizer />
             <button
