@@ -4,7 +4,7 @@ export function isLoginRequired(result: CallToolResult): boolean {
   return result.ok === false && result.loginRequired === true;
 }
 
-function isFramed(): boolean {
+export function isFramed(): boolean {
   try {
     return window.self !== window.top;
   } catch {
