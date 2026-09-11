@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { articleHasCategory } from "@/data/articles";
 import { ArticleCard } from "@/components/article-card";
 import { useEdition } from "@/lib/edition";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
@@ -11,7 +12,7 @@ function CategoryPage() {
   const { slug } = Route.useParams();
   const cats = useCategories();
   const edition = useEdition();
-  const items = edition.filter((a) => a.category === slug);
+  const items = edition.filter((a) => articleHasCategory(a, slug, categoryLabel(cats, slug)));
 
   return (
     <div>
