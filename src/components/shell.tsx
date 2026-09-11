@@ -22,6 +22,7 @@ import { AppLogo } from "@/components/app-logo";
 import { NoticeBell } from "@/components/notice-bell";
 import { SiteFooter } from "@/components/site-footer";
 import { MarketTicker } from "@/components/market-ticker";
+import { NewsTicker } from "@/components/news-ticker";
 import { WeatherBar } from "@/components/weather-bar";
 import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
@@ -150,6 +151,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
         {features.market ? <MarketTicker /> : null}
         {features.weather ? <WeatherBar /> : null}
+        {features.newsTicker ? <NewsTicker /> : null}
       </header>
 
       {open ? (
