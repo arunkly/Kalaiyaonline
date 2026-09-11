@@ -105,7 +105,6 @@ function wrapHtmlResponses(middlewares, cwd) {
     const injector = createHeadInjector({
       host,
       cwd,
-      keepShareMeta: /^\/(article|gallery|directory)\//.test(pathOnly),
     });
     let mode = null; // null = undecided, "inject" | "passthrough"
 

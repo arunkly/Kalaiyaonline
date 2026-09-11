@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export const THEME_FONTS = [
@@ -136,11 +136,7 @@ export const saveThemeSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const next = normalizeTheme(data);
     const sql = await ensureThemeTable();
     await sql`

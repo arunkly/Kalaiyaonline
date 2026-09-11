@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { siteOrigin } from "@/lib/site-url";
 
@@ -102,11 +102,7 @@ export const saveSeoSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const next = normalize(data);
     const sql = await ensureSeoTable();
     await sql`

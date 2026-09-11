@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { FeaturesProvider } from "@/components/features-provider";
+import { SiteProvider } from "@/components/site-provider";
 import { ThemeProvider, ThemeVars } from "@/components/theme-provider";
 import { DEFAULT_FEATURES, type FeatureFlags } from "@/lib/features";
+import { DEFAULT_SITE } from "@/lib/site";
 import { DEFAULT_THEME, fontHref, type ThemeSettings } from "@/lib/theme";
 
 export function ChromeBoot({ children }: { children: ReactNode }) {
@@ -16,6 +18,12 @@ export function ChromeBoot({ children }: { children: ReactNode }) {
     void import("@/lib/features")
       .then((m) => m.getFeatureFlags())
       .then(setFeatures)
+      .catch(() => undefined);
+    void import("@/lib/site")
+      .then((m) => m.getSiteIdentity())
+      .then((site) => {
+        if (site.name) document.title = site.tagline ? `${site.name} — ${site.tagline}` : site.name;
+      })
       .catch(() => undefined);
     void import("@/lib/seo")
       .then((m) => m.getSeoSettings())
@@ -40,7 +48,9 @@ export function ChromeBoot({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
       <ThemeVars theme={theme} />
-      <FeaturesProvider flags={features}>{children}</FeaturesProvider>
+      <FeaturesProvider flags={features}>
+        <SiteProvider initial={DEFAULT_SITE}>{children}</SiteProvider>
+      </FeaturesProvider>
     </ThemeProvider>
   );
 }

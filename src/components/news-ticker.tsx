@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Newspaper, Power } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { byLatest, displayTitle, type Article } from "@/data/articles";
+import { NewsTitle } from "@/components/news-title";
 import { deskToArticle } from "@/lib/edition";
 import { listPublishedStories } from "@/lib/desk";
 
@@ -65,7 +66,7 @@ export function NewsTicker() {
           className="mx-1 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/10 px-3 py-1 text-sm text-paper hover:bg-white/15"
         >
           <span className="size-1.5 rounded-full bg-mark" />
-          {displayTitle(a)}
+          <NewsTitle text={displayTitle(a)} />
         </Link>
       ))
     : [

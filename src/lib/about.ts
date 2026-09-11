@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type AboutPage = {
@@ -104,11 +104,7 @@ export const saveAboutPage = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const sql = await ensureAboutTable();
     await sql`
       insert into about_page (id, title, body, phone, email, address, facebook, website, org_name, registration_no, extra_note)

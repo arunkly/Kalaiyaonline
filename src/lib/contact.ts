@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { ADMIN_EMAIL, isAdminEmail } from "@/lib/admin";
+import { ADMIN_EMAIL } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type ContactMessage = {
@@ -87,11 +88,7 @@ export const submitContact = createServerFn({ method: "POST" })
 export const listContactMessages = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const sql = await ensureTable();
     return sql<ContactMessage>`
       select id, name, address, email, phone, message, created_at as "createdAt"

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type MailSettings = {
@@ -20,11 +20,11 @@ export async function sendWelcomeEmail(to: string, name?: string) {
     <div style="font-family:Mukta,Arial,sans-serif;line-height:1.7;color:#1b3d1f;max-width:560px">
       <p style="font-size:18px;font-weight:700">नमस्ते ${who},</p>
       <p>KalaiyaOnline मा स्वागत छ — कलैया, बारा र मधेशको स्थानीय समाचार एप।</p>
-      <p>तपाईं यहाࠖ गर्न सक्नुहुन्छ:</p>
+      <p>तपाईं यहाँ गर्न सक्नुहुन्छ:</p>
       <ul>
         <li>समाचार पढ्ने, लाइक/कमेन्ट गर्ने र सेभ गर्ने</li>
         <li>ग्यालरी हेर्ने र डाइरेक्ट्री खोज्ने</li>
-        <li>दर्ता सदस्यसङ्ग च्याट गर्ने (आपत्तिजनक शब्द नचलाउनुहोस्)</li>
+        <li>दर्ता सदस्यसँग च्याट गर्ने (आपत्तिजनक शब्द नचलाउनुहोस्)</li>
         <li>रक्तदाता सूचीमा नाम राख्ने</li>
         <li>सेयर बजार, पात्रो र मौसम हेर्ने</li>
         <li>प्रोफाइल फोटो, मोबाइल र ठेगाना अद्यावधिक गर्ने</li>
@@ -42,7 +42,7 @@ export const sendWelcomeMail = createServerFn({ method: "POST" })
     try {
       await sendWelcomeEmail(data.email, data.name);
     } catch {
-      /* mail optional */
+      /* mail optional — signup should still succeed */
     }
     return { ok: true as const };
   });
@@ -77,11 +77,7 @@ export async function sendAppEmail(to: string, subject: string, html: string) {
 export const getMailSettings = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     const rows = await sql<{ fromEmail: string; fromName: string; resendKey: string }>`
@@ -105,11 +101,7 @@ export const saveMailSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) {
-      throw new Error("Forbidden");
-    }
+    await assertAppAdmin(context.userId);
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     if (data.resendKey) {

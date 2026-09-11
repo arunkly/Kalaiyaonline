@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type StoryComment = {
@@ -23,12 +23,24 @@ async function sessionUser() {
   return getSessionUser();
 }
 
+function guestVoterId(raw?: string) {
+  const value = raw?.trim() ?? "";
+  if (/^anon-[a-z0-9-]{8,40}$/i.test(value)) return value;
+  return "";
+}
+
+async function voterId(guest?: string) {
+  const session = await sessionUser();
+  if (session?.id) return session.id;
+  return guestVoterId(guest);
+}
+
 export const getStoryEngagement = createServerFn({ method: "GET" })
-  .validator(z.object({ slug: z.string().min(1).max(120) }))
+  .validator(z.object({ slug: z.string().min(1).max(120), guest: z.string().max(48).optional() }))
   .handler(async ({ data }) => {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
-    const session = await sessionUser();
+    const voter = await voterId(data.guest);
     const up = await sql<{ n: string }>`
       select count(*)::text as n from desk_votes where slug = ${data.slug} and value = 1
     `;
@@ -36,10 +48,10 @@ export const getStoryEngagement = createServerFn({ method: "GET" })
       select count(*)::text as n from desk_votes where slug = ${data.slug} and value = -1
     `;
     let myVote = 0;
-    if (session?.id) {
+    if (voter) {
       const mine = await sql<{ value: number }>`
         select value from desk_votes
-        where slug = ${data.slug} and user_id = ${session.id}
+        where slug = ${data.slug} and user_id = ${voter}
         limit 1
       `;
       myVote = Number(mine[0]?.value ?? 0);
@@ -59,27 +71,34 @@ export const getStoryEngagement = createServerFn({ method: "GET" })
   });
 
 export const castStoryVote = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
-  .validator(z.object({ slug: z.string().min(1).max(120), value: z.union([z.literal(1), z.literal(-1)]) }))
-  .handler(async ({ data, context }) => {
+  .validator(
+    z.object({
+      slug: z.string().min(1).max(120),
+      value: z.union([z.literal(1), z.literal(-1)]),
+      guest: z.string().max(48).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const voter = await voterId(data.guest);
+    if (!voter) throw new Error("भोट गर्न सकिएन।");
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     const existing = await sql<{ value: number }>`
       select value from desk_votes
-      where slug = ${data.slug} and user_id = ${context.userId}
+      where slug = ${data.slug} and user_id = ${voter}
       limit 1
     `;
     if (existing[0]?.value === data.value) {
-      await sql`delete from desk_votes where slug = ${data.slug} and user_id = ${context.userId}`;
+      await sql`delete from desk_votes where slug = ${data.slug} and user_id = ${voter}`;
     } else if (existing[0]) {
       await sql`
         update desk_votes set value = ${data.value}
-        where slug = ${data.slug} and user_id = ${context.userId}
+        where slug = ${data.slug} and user_id = ${voter}
       `;
     } else {
       await sql`
         insert into desk_votes (slug, user_id, value)
-        values (${data.slug}, ${context.userId}, ${data.value})
+        values (${data.slug}, ${voter}, ${data.value})
       `;
     }
     return { ok: true };
@@ -105,8 +124,7 @@ export const deleteStoryComment = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
-    const session = await sessionUser();
-    const admin = isAdminEmail(session?.email);
+    const admin = await hasAdminAccess(context.userId);
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     if (admin) {

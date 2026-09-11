@@ -1,7 +1,8 @@
 import { parseCategories } from "@/data/articles";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { ADMIN_EMAIL, isAdminEmail } from "@/lib/admin";
+import { ADMIN_EMAIL } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 const storyInput = z.object({
@@ -30,6 +31,9 @@ export type DeskStory = {
   published: boolean;
   createdAt: string;
   deletedAt?: string | null;
+  userId?: string;
+  authorName?: string;
+  authorPhoto?: string;
 };
 
 export type DeskCategory = {
@@ -122,13 +126,7 @@ function slugifyCat(label: string) {
 }
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (session?.id === userId && isAdminEmail(session.email)) return;
-  const { getSql } = await import("@/lib/db");
-  const sql = await getSql();
-  const rows = await sql<{ email: string }>`select email from "user" where id = ${userId} limit 1`;
-  if (!isAdminEmail(rows[0]?.email)) throw new Error("एडमिन खाताले मात्र समाचार राख्न सकिन्छ।");
+  await assertAppAdmin(userId);
 }
 
 export const ensureAdminReady = createServerFn({ method: "POST" }).handler(
@@ -149,27 +147,70 @@ function withCreatedAt<T extends { createdAt?: unknown }>(row: T): T {
   return { ...row, createdAt: stampCreatedAt(row.createdAt) };
 }
 
+async function attachAuthors(sql: Awaited<ReturnType<typeof ensureDesk>>, rows: DeskStory[]) {
+  const ids = [...new Set(rows.map((r) => r.userId).filter((id): id is string => Boolean(id)))];
+  if (!ids.length) return rows;
+  try {
+    const umap = new Map<string, { name: string | null; email: string | null; image: string | null }>();
+    const pmap = new Map<string, { displayName: string; photoUrl: string }>();
+    for (const id of ids) {
+      const users = await sql<{ name: string | null; email: string | null; image?: string | null }>`
+        select name, email from "user" where id = ${id} limit 1
+      `;
+      if (users[0]) umap.set(id, { ...users[0], image: null });
+      try {
+        const pics = await sql<{ image: string | null }>`
+          select image from "user" where id = ${id} limit 1
+        `;
+        const current = umap.get(id);
+        if (current) umap.set(id, { ...current, image: pics[0]?.image ?? null });
+      } catch {
+        /* image column may be missing */
+      }
+      const profiles = await sql<{ displayName: string; photoUrl: string }>`
+        select display_name as "displayName", photo_url as "photoUrl"
+        from member_profiles where user_id = ${id} limit 1
+      `;
+      if (profiles[0]) pmap.set(id, profiles[0]);
+    }
+    return rows.map((row) => {
+      const user = umap.get(row.userId || "");
+      const profile = pmap.get(row.userId || "");
+      const authorName =
+        profile?.displayName?.trim() ||
+        user?.name?.trim() ||
+        user?.email?.split("@")[0] ||
+        row.authorName ||
+        "";
+      const authorPhoto = profile?.photoUrl?.trim() || user?.image?.trim() || row.authorPhoto || "";
+      return { ...row, authorName, authorPhoto };
+    });
+  } catch {
+    return rows;
+  }
+}
+
 export const listPublishedStories = createServerFn({ method: "GET" }).handler(
   async () => {
     const sql = await ensureDesk();
     try {
       const rows = await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, categories, location, tags,
-               image_url as "imageUrl", published, created_at as "createdAt"
+               image_url as "imageUrl", published, created_at as "createdAt", user_id as "userId"
         from desk_stories
         where published = true and deleted_at is null
         order by created_at desc
       `;
-      return rows.map(withCreatedAt);
+      return attachAuthors(sql, rows.map(withCreatedAt));
     } catch {
       const rows = await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, categories, location, tags,
-               image_url as "imageUrl", published, created_at as "createdAt"
+               image_url as "imageUrl", published, created_at as "createdAt", user_id as "userId"
         from desk_stories
         where published = true
         order by created_at desc
       `;
-      return rows.map(withCreatedAt);
+      return attachAuthors(sql, rows.map(withCreatedAt));
     }
   },
 );
@@ -181,21 +222,23 @@ export const getPublishedStory = createServerFn({ method: "GET" })
     try {
       const rows = await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, categories, location, tags,
-               image_url as "imageUrl", published, created_at as "createdAt"
+               image_url as "imageUrl", published, created_at as "createdAt", user_id as "userId"
         from desk_stories
         where slug = ${data.slug} and published = true and deleted_at is null
         limit 1
       `;
-      return rows[0] ? withCreatedAt(rows[0]) : null;
+      const [story] = rows[0] ? await attachAuthors(sql, [withCreatedAt(rows[0])]) : [];
+      return story ?? null;
     } catch {
       const rows = await sql<DeskStory>`
         select id, slug, title, excerpt, body, category, categories, location, tags,
-               image_url as "imageUrl", published, created_at as "createdAt"
+               image_url as "imageUrl", published, created_at as "createdAt", user_id as "userId"
         from desk_stories
         where slug = ${data.slug} and published = true
         limit 1
       `;
-      return rows[0] ? withCreatedAt(rows[0]) : null;
+      const [story] = rows[0] ? await attachAuthors(sql, [withCreatedAt(rows[0])]) : [];
+      return story ?? null;
     }
   });
 

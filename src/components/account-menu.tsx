@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { LogIn, LogOut, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { isAdminEmail } from "@/lib/admin";
+import { getMyAccess } from "@/lib/admin-access";
 import { authEnabled, signOut } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getMyProfile } from "@/lib/member";
@@ -11,13 +11,21 @@ export function AccountMenu() {
   const [open, setOpen] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const [out, setOut] = useState(false);
+  const [admin, setAdmin] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setAdmin(false);
+      setPhoto(null);
+      return;
+    }
     void getMyProfile()
       .then((p) => setPhoto(p.photoUrl || user.profileImageUrl))
       .catch(() => setPhoto(user.profileImageUrl));
+    void getMyAccess()
+      .then((row) => setAdmin(row.admin))
+      .catch(() => setAdmin(false));
   }, [user]);
 
   useEffect(() => {
@@ -79,7 +87,7 @@ export function AccountMenu() {
           >
             पासवर्ड परिवर्तन
           </Link>
-          {isAdminEmail(user.primaryEmail) ? (
+          {admin ? (
             <Link
               to="/admin"
               onClick={() => setOpen(false)}

@@ -106,7 +106,9 @@ export function deskToArticle(s: DeskStory): Article {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean),
-    author: "K O",
+    author: s.authorName?.trim() || "कलैयाअनलाइन",
+    authorId: s.userId,
+    authorPhoto: s.authorPhoto || undefined,
     date,
     location: String(s.location || "कलैया"),
     imageUrl: s.imageUrl || undefined,

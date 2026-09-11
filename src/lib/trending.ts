@@ -23,7 +23,7 @@ function storyScore(views: number, likes: number, comments: number, createdAt: s
 
 function splitTags(raw: string) {
   return raw
-    .split(/[,|]+/)
+    .split(/[,،،|]+/)
     .map((t) => t.trim().replace(/^#/, ""))
     .filter((t) => t.length >= 2 && t.length <= 32);
 }

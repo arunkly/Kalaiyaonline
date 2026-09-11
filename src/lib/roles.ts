@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type AppRole = "member" | "editor" | "admin";
@@ -13,16 +14,7 @@ export type RegisteredUser = {
 };
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
-    const rows = await sql<{ role: string }>`
-      select role from user_roles where user_id = ${userId} limit 1
-    `;
-    if (rows[0]?.role !== "admin") throw new Error("Forbidden");
-  }
+  await assertAppAdmin(userId);
 }
 
 export const listRegisteredUsers = createServerFn({ method: "GET" })

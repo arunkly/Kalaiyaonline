@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { DEFAULT_MAP, type MapSettings } from "@/lib/map-embed";
 
@@ -22,11 +22,7 @@ export type DirItem = {
 };
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    throw new Error("Forbidden");
-  }
+  await assertAppAdmin(userId);
 }
 
 function cleanHttpUrl(raw?: string) {

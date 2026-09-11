@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isAdminEmail } from "@/lib/admin";
+import { getMyAccess } from "@/lib/admin-access";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { toNpDigits } from "@/data/articles";
 import { cn } from "@/lib/cn";
 import {
   addStoryComment,
@@ -11,6 +12,17 @@ import {
   getStoryEngagement,
   type StoryComment,
 } from "@/lib/engagement";
+
+function guestVoter() {
+  if (typeof window === "undefined") return "";
+  const key = "ko-voter";
+  let id = window.localStorage.getItem(key);
+  if (!id) {
+    id = `anon-${crypto.randomUUID()}`;
+    window.localStorage.setItem(key, id);
+  }
+  return id;
+}
 
 export function StoryEngage({ slug }: { slug: string }) {
   const { user } = useCurrentUserState();
@@ -21,9 +33,10 @@ export function StoryEngage({ slug }: { slug: string }) {
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [admin, setAdmin] = useState(false);
 
   async function refresh() {
-    const row = await getStoryEngagement({ data: { slug } });
+    const row = await getStoryEngagement({ data: { slug, guest: guestVoter() } });
     setLikes(row.likes);
     setDislikes(row.dislikes);
     setMyVote(row.myVote);
@@ -32,19 +45,18 @@ export function StoryEngage({ slug }: { slug: string }) {
 
   useEffect(() => {
     void refresh().catch(() => undefined);
+    void getMyAccess()
+      .then((row) => setAdmin(row.admin))
+      .catch(() => setAdmin(false));
   }, [slug]);
 
   async function vote(value: 1 | -1) {
-    if (!user) {
-      setError("लाइक वा डिसलाइक गर्न लगइन गर्नुहोस्।");
-      return;
-    }
     setError(null);
     try {
-      await castStoryVote({ data: { slug, value } });
+      await castStoryVote({ data: { slug, value, guest: guestVoter() } });
       await refresh();
     } catch {
-      setError("भोट सेभ भएन। लगइन गर्नुहोस्।");
+      setError("भोट सेभ भएन।");
     }
   }
 
@@ -77,34 +89,37 @@ export function StoryEngage({ slug }: { slug: string }) {
   }
 
   return (
-    <section className="mt-10 space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => void vote(1)}
-          className={cn(
-            "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold",
-            myVote === 1
-              ? "border-crimson bg-chip text-crimson"
-              : "border-line bg-surface hover:border-crimson",
-          )}
-        >
-          <ThumbsUp className="size-4" />
-          लाइक · {likes}
-        </button>
-        <button
-          type="button"
-          onClick={() => void vote(-1)}
-          className={cn(
-            "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold",
-            myVote === -1
-              ? "border-mark bg-orange-50 text-mark"
-              : "border-line bg-surface hover:border-mark",
-          )}
-        >
-          <ThumbsDown className="size-4" />
-          डिसलाइक · {dislikes}
-        </button>
+    <section className="mt-6 space-y-6">
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-2 rounded-full border border-line bg-white p-1.5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => void vote(1)}
+            className={cn(
+              "inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition",
+              myVote === 1
+                ? "bg-crimson text-white shadow-md"
+                : "text-ink-soft hover:bg-[#fff1f0] hover:text-crimson",
+            )}
+          >
+            <ThumbsUp className={cn("size-5", myVote === 1 ? "fill-white" : "")} />
+            लाइक {toNpDigits(likes)}
+          </button>
+          <span className="h-8 w-px bg-line" />
+          <button
+            type="button"
+            onClick={() => void vote(-1)}
+            className={cn(
+              "inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold transition",
+              myVote === -1
+                ? "bg-[#c2410c] text-white shadow-md"
+                : "text-ink-soft hover:bg-[#fff4e8] hover:text-[#c2410c]",
+            )}
+          >
+            <ThumbsDown className={cn("size-5", myVote === -1 ? "fill-white" : "")} />
+            डिसलाइक {toNpDigits(dislikes)}
+          </button>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
@@ -149,7 +164,7 @@ export function StoryEngage({ slug }: { slug: string }) {
                     <p className="text-sm font-semibold">{c.author}</p>
                     <p className="mt-1 text-sm leading-relaxed text-ink-soft">{c.body}</p>
                   </div>
-                  {user && (user.id === c.userId || isAdminEmail(user.primaryEmail)) ? (
+                  {user && (user.id === c.userId || admin) ? (
                     <button
                       type="button"
                       onClick={() => void onDelete(c.id)}

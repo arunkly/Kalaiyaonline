@@ -18,6 +18,8 @@ import { listPublishedStories, type DeskCategory } from "@/lib/desk";
 import { deskToArticle } from "@/lib/edition";
 import { getStoryEngagement } from "@/lib/engagement";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
+import { NewsTitle } from "@/components/news-title";
+import { AuthorByline } from "@/components/author-byline";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -36,9 +38,10 @@ const AFTER_BLOCKS = [
 ] as const;
 
 function headlineCategory(article: Article, cats: DeskCategory[]) {
-  const slugs = articleCategories(article).filter((s) => s !== "headline");
-  const slug = slugs[0] || article.category || "headline";
-  return categoryLabel(cats, slug);
+  const slugs = articleCategories(article).filter((s) => s !== "headline" && s !== "हेडलाइन");
+  const fallback = article.category !== "headline" && article.category !== "हेडलाइन" ? article.category : "";
+  const slug = slugs[0] || fallback;
+  return slug ? categoryLabel(cats, slug) : "";
 }
 
 function pickStories(edition: Article[], aliases: readonly string[], exclude: Set<string>, limit = 5) {
@@ -65,7 +68,7 @@ function MiniNews({ article }: { article: Article }) {
       )}
       <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
         <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug text-ink group-hover:text-crimson">
-          {displayTitle(article)}
+          <NewsTitle text={displayTitle(article)} />
         </span>
         <span className="mt-2 text-xs text-muted">{formatBsDateTime(article.date)}</span>
       </span>
@@ -191,7 +194,7 @@ function DeskTabs({
               </span>
               <span className="absolute inset-x-0 bottom-0 p-5 text-white">
                 <span className="block font-display text-2xl font-bold leading-snug sm:text-3xl">
-                  {displayTitle(featured)}
+                  <NewsTitle text={displayTitle(featured)} />
                 </span>
                 <span className="mt-2 block text-sm text-white/75">
                   {formatBsDateTime(featured.date)}
@@ -217,7 +220,7 @@ function DeskTabs({
                     )}
                     <span className="min-w-0">
                       <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug text-ink">
-                        {displayTitle(article)}
+                        <NewsTitle text={displayTitle(article)} />
                       </span>
                       <span className="mt-1 block text-xs text-muted">
                         {formatBsDateTime(article.date)}
@@ -298,34 +301,26 @@ function Home() {
   return (
     <div className="space-y-4 py-6 sm:py-8">
       <div className="mx-auto max-w-5xl">
-        {headlines.map((article) => (
+        {headlines.map((article) => {
+          const cat = headlineCategory(article, cats);
+          return (
           <div key={article.slug}>
             <article className="rounded-[1.6rem] border border-line bg-white px-4 py-6 shadow-sm sm:px-8 sm:py-8">
               <Link to="/article/$slug" params={{ slug: article.slug }} className="group block">
-                <div className="mb-4 flex flex-col items-center gap-2">
-                  <span className="text-[10px] font-bold tracking-[0.42em] text-mark">हेडलाइन</span>
-                  <span className="relative inline-flex items-center">
-                    <span className="absolute -left-3 top-1/2 size-2.5 -translate-y-1/2 rotate-45 bg-mark shadow-sm" />
-                    <span
-                      className="inline-flex min-w-[7.5rem] items-center justify-center bg-gradient-to-r from-[#7a1522] via-crimson to-[#7a1522] px-7 py-1.5 text-[13px] font-bold tracking-[0.22em] text-white shadow-[0_8px_18px_-10px_rgba(155,28,44,0.9)]"
-                      style={{
-                        clipPath:
-                          "polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%)",
-                      }}
-                    >
-                      {headlineCategory(article, cats)}
+                {cat ? (
+                  <div className="mb-5 flex justify-center">
+                    <span className="inline-flex -skew-x-12 items-center bg-gradient-to-r from-[#9B1C2C] to-[#c2410c] px-5 py-1.5 shadow-md">
+                      <span className="skew-x-12 text-[13px] font-bold tracking-[0.2em] text-white">
+                        {cat}
+                      </span>
                     </span>
-                    <span className="absolute -right-3 top-1/2 size-2.5 -translate-y-1/2 rotate-45 bg-mark shadow-sm" />
-                  </span>
-                </div>
+                  </div>
+                ) : null}
                 <h2 className="text-center font-display text-[35px] font-bold leading-[1.22] text-ink md:text-[40px] lg:text-[50px]">
-                  {displayTitle(article)}
+                  <NewsTitle text={displayTitle(article)} />
                 </h2>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-ink-soft">
-                  <span className="inline-flex items-center gap-2 font-semibold text-crimson">
-                    <img src="/logo.jpg" alt="" className="size-6 rounded-full object-cover ring-1 ring-crimson/20" />
-                    कलैयाअनलाइन
-                  </span>
+                  <AuthorByline article={article} />
                   <span className="text-line-strong">·</span>
                   <span className="inline-flex items-center gap-1.5">
                     <CalendarDays className="size-4 text-mark" />
@@ -361,7 +356,8 @@ function Home() {
               <span className="h-px flex-1 bg-gradient-to-l from-transparent via-line-strong to-mark/70" />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">

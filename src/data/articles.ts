@@ -10,6 +10,8 @@ export type Article = {
   categories?: string[];
   tags: string[];
   author: string;
+  authorId?: string;
+  authorPhoto?: string;
   date: string;
   location: string;
   imageUrl?: string;

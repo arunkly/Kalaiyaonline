@@ -18,6 +18,7 @@ import {
 import type { AboutPage } from "@/lib/about";
 import { AppLogo } from "@/components/app-logo";
 import { useFeatures } from "@/components/features-provider";
+import { useSite } from "@/components/site-provider";
 import type { FeatureKey } from "@/lib/features";
 import { toNpDigits } from "@/data/articles";
 
@@ -41,8 +42,10 @@ const chip =
 
 export function SiteFooter({ about }: { about: AboutPage | null }) {
   const features = useFeatures();
+  const site = useSite();
   const links = FOOTER_LINKS.filter((l) => !l.feature || features[l.feature]);
-  const blurb = String(about?.body || "कलैया, बारा र मधेशका स्थानीय समाचार।").slice(0, 160);
+  const brand = about?.orgName || site.nameNp || site.name;
+  const blurb = String(about?.body || site.tagline || site.description).slice(0, 160);
 
   return (
     <footer className="border-t border-line bg-[#10261a] text-[#e8efe9]">
@@ -50,7 +53,7 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:py-12">
         <div>
           <AppLogo variant="dark" className="h-10 w-auto" />
-          <p className="mt-3 font-display text-lg">{about?.orgName || "KalaiyaOnline"}</p>
+          <p className="mt-3 font-display text-lg">{brand}</p>
           <p className="mt-2 text-sm leading-relaxed text-white/70">{blurb}</p>
         </div>
         <div>
@@ -111,7 +114,7 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
       </div>
       <div className="border-t border-white/10 bg-[#0b1a12] px-4 py-4 pb-28 sm:px-6 lg:pb-4">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-center text-xs sm:flex-row sm:text-left">
-          <p className="text-white/45">© {toNpDigits(new Date().getFullYear())} {about?.orgName || "KalaiyaOnline"}</p>
+          <p className="text-white/45">© {toNpDigits(new Date().getFullYear())} {brand}</p>
           <a
             href="https://www.facebook.com/kalaiyabara"
             target="_blank"

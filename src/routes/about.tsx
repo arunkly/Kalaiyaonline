@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { isAdminEmail } from "@/lib/admin";
+import { getMyAccess } from "@/lib/admin-access";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { DEFAULT_ABOUT, getAboutPage, saveAboutPage, type AboutPage } from "@/lib/about";
 import { ContactForm } from "@/components/contact-form";
@@ -14,7 +14,7 @@ function siteHost(url: string) {
 
 function AboutPageView() {
   const { user } = useCurrentUserState();
-  const admin = isAdminEmail(user?.primaryEmail);
+  const [admin, setAdmin] = useState(false);
   const [page, setPage] = useState<AboutPage>(DEFAULT_ABOUT);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +23,9 @@ function AboutPageView() {
     void getAboutPage()
       .then((next) => setPage(next ?? DEFAULT_ABOUT))
       .catch(() => setPage(DEFAULT_ABOUT));
+    void getMyAccess()
+      .then((row) => setAdmin(row.admin))
+      .catch(() => setAdmin(false));
   }, []);
 
   return (

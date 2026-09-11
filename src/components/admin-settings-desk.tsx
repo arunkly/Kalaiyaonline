@@ -36,7 +36,7 @@ export function SettingsDeskPanel() {
           Resend
         </a>{" "}
         API की राख्नुहोस्।
-        {hasKey ? " की सेभ छ। नयाࠖ की लेखे मात्र बदलिन्छ।" : " की अहिले छैन।"}
+        {hasKey ? " की सेभ छ। नयाँ की लेखे मात्र बदलिन्छ।" : " की अहिले छैन।"}
       </p>
       {error ? <p className="text-sm text-mark">{error}</p> : null}
       {ok ? <p className="text-sm text-[#14934e]">{ok}</p> : null}
@@ -72,7 +72,7 @@ export function SettingsDeskPanel() {
             autoComplete="off"
             value={resendKey}
             onChange={(e) => setResendKey(e.target.value)}
-            placeholder={hasKey ? "••••••••  (बदल्न नयाࠖ की लेख्नुहोस्)" : "re_xxxxxxxx"}
+            placeholder={hasKey ? "••••••••  (बदल्न नयाँ की लेख्नुहोस्)" : "re_xxxxxxxx"}
             className={field}
           />
         </label>
@@ -81,7 +81,7 @@ export function SettingsDeskPanel() {
           disabled={saving}
           className="rounded-full bg-crimson px-4 py-2 text-sm font-semibold text-paper disabled:opacity-60"
         >
-          {saving ? "सेभ हुࠖदै…" : "सेभ गर्नुहोस्"}
+          {saving ? "सेभ हुँदै…" : "सेभ गर्नुहोस्"}
         </button>
       </form>
     </section>

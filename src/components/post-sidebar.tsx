@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { displayTitle, toNpDigits, type Article } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
+import { NewsTitle } from "@/components/news-title";
 import { cn } from "@/lib/cn";
 import { listStoryViews } from "@/lib/views";
 
@@ -94,7 +95,7 @@ export function PostSidebar({
                 )}
                 <span className="min-w-0">
                   <span className="line-clamp-3 font-display text-[17px] font-semibold leading-snug">
-                    {displayTitle(a)}
+                    <NewsTitle text={displayTitle(a)} />
                   </span>
                   <span className="mt-1 block text-[11px] text-muted">{formatBsDateTime(a.date)}</span>
                 </span>

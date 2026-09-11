@@ -4,6 +4,8 @@ import { displayTitle, toNpDigits, type Article } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
 import { cn } from "@/lib/cn";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
+import { NewsTitle } from "@/components/news-title";
+import { AuthorByline } from "@/components/author-byline";
 
 export function ArticleCard({
   article,
@@ -20,7 +22,6 @@ export function ArticleCard({
   const label = categoryLabel(cats, article.category);
   const title = displayTitle(article);
   const date = formatBsDateTime(article.date);
-  const initial = (article.author || "K").trim().charAt(0) || "K";
 
   if (variant === "headline") {
     return (
@@ -30,15 +31,10 @@ export function ArticleCard({
         className="group block bg-surface"
       >
         <h2 className="text-center font-display text-[1.85rem] font-extrabold leading-[1.25] text-ink sm:text-[2.15rem]">
-          {title}
+          <NewsTitle text={title} />
         </h2>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted">
-          <span className="inline-flex items-center gap-2">
-            <span className="grid size-8 place-items-center overflow-hidden rounded-full border border-line bg-chip font-bold text-crimson">
-              {initial}
-            </span>
-            <span className="font-medium text-ink-soft">{article.author}</span>
-          </span>
+          <AuthorByline article={article} />
           <span className="inline-flex items-center gap-1.5">
             <Clock className="size-4" />
             {date}
@@ -82,7 +78,7 @@ export function ArticleCard({
           <span className="w-fit bg-mark px-2.5 py-0.5 text-[11px] font-extrabold tracking-[0.14em] text-ink">
             हेडलाइन
           </span>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl">{title}</h2>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-[1.15] sm:text-5xl"><NewsTitle text={title} /></h2>
           {article.excerpt ? (
             <p className="mt-3 max-w-2xl line-clamp-2 text-sm text-paper/80 sm:text-base">{article.excerpt}</p>
           ) : null}
@@ -115,7 +111,7 @@ export function ArticleCard({
         <div className="flex flex-col justify-center p-4 sm:p-6">
           <p className="text-[11px] font-bold tracking-[0.16em] text-crimson">{label}</p>
           <h3 className="mt-2 font-display text-2xl font-extrabold leading-snug group-hover:text-crimson sm:text-3xl">
-            {title}
+            <NewsTitle text={title} />
           </h3>
           {article.excerpt ? (
             <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-soft">{article.excerpt}</p>
@@ -138,7 +134,7 @@ export function ArticleCard({
         ) : null}
         <div className="p-4">
           <p className="text-[11px] font-bold tracking-[0.16em] text-crimson">{label}</p>
-          <h3 className="mt-1 font-display text-xl font-bold leading-snug group-hover:text-crimson">{title}</h3>
+          <h3 className="mt-1 font-display text-xl font-bold leading-snug group-hover:text-crimson"><NewsTitle text={title} /></h3>
           <p className="mt-2 text-xs text-muted">{date}</p>
         </div>
       </Link>
@@ -169,7 +165,7 @@ export function ArticleCard({
         <span>
           <p className="text-[11px] font-bold tracking-[0.14em] text-crimson">{label}</p>
           <h3 className="mt-0.5 font-display text-lg font-bold leading-snug group-hover:text-crimson sm:text-xl">
-            {title}
+            <NewsTitle text={title} />
           </h3>
           {variant === "text" ? (
             <p className="mt-1 line-clamp-2 text-sm text-muted">{article.excerpt}</p>
@@ -202,7 +198,7 @@ export function ArticleCard({
           {label}
           {article.breaking ? " · ब्रेकिङ" : ""}
         </p>
-        <h3 className="mt-2 font-display text-xl font-bold leading-snug group-hover:text-crimson">{title}</h3>
+        <h3 className="mt-2 font-display text-xl font-bold leading-snug group-hover:text-crimson"><NewsTitle text={title} /></h3>
         <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-ink-soft">{article.excerpt}</p>
         <p className="mt-3 text-xs text-muted">
           {article.location} · {date}

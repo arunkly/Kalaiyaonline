@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] as const;
@@ -20,11 +20,7 @@ export type BloodDonor = {
 };
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    throw new Error("Forbidden");
-  }
+  await assertAppAdmin(userId);
 }
 
 const donorInput = z.object({

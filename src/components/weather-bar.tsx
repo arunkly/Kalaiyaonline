@@ -87,7 +87,7 @@ export function WeatherBar() {
               ) : null}
             </p>
           ) : (
-            <p className="text-[#2E7D32]/70">मौसम लोड हुࠖदै…</p>
+            <p className="text-[#2E7D32]/70">मौसम लोड हुँदै…</p>
           )}
         </div>
       </div>

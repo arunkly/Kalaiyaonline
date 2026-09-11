@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { election, type ElectionData, type Party } from "@/lib/election";
 
@@ -146,9 +146,7 @@ export const setElectionLive = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ enabled: z.boolean() }))
   .handler(async ({ data, context }) => {
-    const { getSessionUser } = await import("@/lib/auth/verify.server");
-    const session = await getSessionUser();
-    if (!session || session.id !== context.userId || !isAdminEmail(session.email)) throw new Error("Forbidden");
+    await assertAppAdmin(context.userId);
     const desk = await readElectionDesk();
     desk.live = { enabled: data.enabled, at: desk.live?.at ?? "", ok: desk.live?.ok ?? false };
     await writeElectionDesk(desk);

@@ -57,7 +57,7 @@ export function MarketTicker() {
   if (!data) {
     return (
       <div className="border-b border-[#2E7D32]/30 bg-[#111111] px-4 py-2 text-sm text-white/70">
-        NEPSE टिकर लोड हुࠖदै…
+        NEPSE टिकर लोड हुँदै…
       </div>
     );
   }

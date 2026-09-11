@@ -1,4 +1,5 @@
 import { AdsDeskPanel } from "@/components/admin-ads-desk";
+import { SiteDeskPanel } from "@/components/admin-site-desk";
 import { SeoDeskPanel } from "@/components/admin-seo-desk";
 import { SettingsDeskPanel } from "@/components/admin-settings-desk";
 import { FeaturesDeskPanel } from "@/components/admin-features-desk";
@@ -13,7 +14,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { parseCategories } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
-import { isAdminEmail } from "@/lib/admin";
+import { getMyAccess } from "@/lib/admin-access";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
@@ -43,7 +44,7 @@ function defaultCategory(cats: DeskCategory[]) {
     || "local";
 }
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "election" | "users" | "ads" | "contact" | "seo" | "theme" | "modules" | "settings";
+type Desk = "news" | "gallery" | "directory" | "blood" | "election" | "users" | "ads" | "contact" | "site" | "seo" | "theme" | "modules" | "settings";
 type Tab = "posts" | "categories" | "trash";
 
 const field =
@@ -51,7 +52,7 @@ const field =
 
 function AdminPage() {
   const { user, isPending } = useCurrentUserState();
-  const allowed = isAdminEmail(user?.primaryEmail);
+  const [allowed, setAllowed] = useState(false);
   const [desk, setDesk] = useState<Desk>("news");
   const [tab, setTab] = useState<Tab>("posts");
   const [stories, setStories] = useState<DeskStory[] | null>(null);
@@ -91,6 +92,16 @@ function AdminPage() {
       setError(err instanceof Error ? err.message : "डेस्क लोड भएन।");
     }
   }
+
+  useEffect(() => {
+    if (!user) {
+      setAllowed(false);
+      return;
+    }
+    void getMyAccess()
+      .then((row) => setAllowed(row.admin))
+      .catch(() => setAllowed(false));
+  }, [user?.id]);
 
   useEffect(() => {
     if (!isPending && user && allowed) {
@@ -293,6 +304,7 @@ function AdminPage() {
             ["users", "प्रयोगकर्ता"],
             ["ads", "विज्ञापन डेस्क"],
             ["contact", "सम्पर्क सन्देश"],
+            ["site", "साइट"],
             ["seo", "SEO"],
             ["theme", "रूप / लोगो"],
             ["modules", "मोड्युल"],
@@ -320,6 +332,7 @@ function AdminPage() {
       {desk === "users" ? <UsersDeskPanel /> : null}
       {desk === "ads" ? <AdsDeskPanel /> : null}
       {desk === "contact" ? <ContactDeskPanel /> : null}
+      {desk === "site" ? <SiteDeskPanel /> : null}
       {desk === "seo" ? <SeoDeskPanel /> : null}
       {desk === "theme" ? <ThemeDeskPanel /> : null}
       {desk === "modules" ? <FeaturesDeskPanel /> : null}

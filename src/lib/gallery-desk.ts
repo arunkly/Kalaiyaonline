@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type GalleryCategory = { id: number; slug: string; label: string };
@@ -43,11 +43,7 @@ function slugify(title: string) {
 }
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    throw new Error("Forbidden");
-  }
+  await assertAppAdmin(userId);
 }
 
 async function photosFor(sql: Awaited<ReturnType<typeof import("@/lib/db").getSql>>, ids: number[]) {

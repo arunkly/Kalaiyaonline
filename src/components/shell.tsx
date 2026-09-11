@@ -28,6 +28,7 @@ import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
 import { useCategories } from "@/lib/use-categories";
 import { useFeatures } from "@/components/features-provider";
+import { useSite } from "@/components/site-provider";
 import { featureForPath } from "@/lib/features";
 
 const NAV = [
@@ -47,6 +48,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const cats = useCategories();
   const features = useFeatures();
+  const site = useSite();
   const moreNav = MORE_NAV.filter((item) => features[item.feature]);
   const navItems = [...NAV, ...moreNav];
   const [open, setOpen] = useState(false);
@@ -102,7 +104,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 id="desk-search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="KalaiyaOnline खोज्नुहोस्"
+                placeholder={site.searchHint || `${site.name} खोज्नुहोस्`}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
               />
             </div>

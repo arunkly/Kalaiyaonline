@@ -8,6 +8,8 @@ import { PostSidebar } from "@/components/post-sidebar";
 import { ShareBar } from "@/components/share-bar";
 import { StoryEngage } from "@/components/story-engage";
 import { TextResizer } from "@/components/text-resizer";
+import { NewsTitle } from "@/components/news-title";
+import { AuthorByline } from "@/components/author-byline";
 import { articleCategories, byLatest, displayTitle, toNpDigits } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
 import { getPublishedStory } from "@/lib/desk";
@@ -142,18 +144,18 @@ function ArticlePage() {
             ))}
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold leading-[1.25] text-ink sm:text-[2.6rem]">
-            {title}
+            <NewsTitle text={title} />
           </h1>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted">
-            <span className="font-semibold text-ink-soft">कलैयाअनलाइन</span>
-            <span className="text-line-strong">·</span>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm font-bold text-ink-soft">
+            <AuthorByline article={article} />
+            <span className="font-normal text-line-strong">·</span>
             <span>{formatBsDateTime(article.date)}</span>
-            <span className="text-line-strong">·</span>
+            <span className="font-normal text-line-strong">·</span>
             <span className="inline-flex items-center gap-1">
               <MessageSquare className="size-3.5" />
               {toNpDigits(comments)}
             </span>
-            <span className="text-line-strong">·</span>
+            <span className="font-normal text-line-strong">·</span>
             <span className="inline-flex items-center gap-1">
               <Eye className="size-3.5" />
               {toNpDigits(views)}

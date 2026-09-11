@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { isAdminEmail } from "@/lib/admin";
+import { assertAppAdmin } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type AppRole = "member" | "editor" | "admin";
@@ -12,11 +13,7 @@ export type AppUserRow = {
 };
 
 async function assertAdmin(userId: string) {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const session = await getSessionUser();
-  if (!session || session.id !== userId || !isAdminEmail(session.email)) {
-    throw new Error("Forbidden");
-  }
+  await assertAppAdmin(userId);
 }
 
 export const listPublicMembers = createServerFn({ method: "GET" }).handler(async () => {
@@ -89,7 +86,7 @@ export const listAppUsers = createServerFn({ method: "GET" })
       id: u.id,
       name: u.name,
       email: u.email,
-      role: (roles.find((r) => r.userId === u.id)?.role as AppRole) || "member",
+      role: (roles.find((r) => r.userId === u.id)?.role as AppRole) || (isAdminEmail(u.email) ? "admin" : "member"),
     })) satisfies AppUserRow[];
   });
 

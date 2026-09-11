@@ -2,15 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AdSlot } from "@/components/ad-slot";
 import { cn } from "@/lib/cn";
+import { toNpDigits } from "@/data/articles";
 import { getNepseMarket, type NepseMarket } from "@/lib/nepse";
 
 export const Route = createFileRoute("/market")({ component: MarketPage });
 
 function fmt(n: number, digits = 2) {
-  return n.toLocaleString("en-NP", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+  return toNpDigits(
+    n.toLocaleString("en-NP", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }),
+  );
 }
 
 function MarketPage() {
