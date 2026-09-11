@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Newspaper, Power } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { displayTitle, type Article } from "@/data/articles";
+import { byLatest, displayTitle, type Article } from "@/data/articles";
 import { deskToArticle } from "@/lib/edition";
 import { listPublishedStories } from "@/lib/desk";
 
@@ -36,7 +36,7 @@ export function NewsTicker() {
     });
   }
 
-  const items = useMemo(() => stories.slice(0, 20), [stories]);
+  const items = useMemo(() => [...stories].sort(byLatest).slice(0, 20), [stories]);
 
   if (!on) {
     return (
