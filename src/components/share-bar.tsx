@@ -1,6 +1,7 @@
 import { Check, Link2, Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { publicOrigin } from "@/lib/site-url";
 
 export function ShareBar({
   path,
@@ -12,9 +13,8 @@ export function ShareBar({
 }) {
   const [copied, setCopied] = useState(false);
   const url = useMemo(() => {
-    const suffix = path || "/";
-    if (typeof window !== "undefined") return `${window.location.origin}${suffix}`;
-    return `https://www.kalaiyaonline.com${suffix}`;
+    const suffix = path?.startsWith("/") ? path : `/${path || ""}`;
+    return `${publicOrigin()}${suffix}`;
   }, [path]);
   const encoded = encodeURIComponent(url);
   const text = encodeURIComponent(title);

@@ -20,8 +20,19 @@ import { getStoryEngagement } from "@/lib/engagement";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { NewsTitle } from "@/components/news-title";
 import { AuthorByline } from "@/components/author-byline";
+import { sharePageMeta } from "@/lib/site-url";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () =>
+    sharePageMeta({
+      title: "KalaiyaOnline",
+      description: "कलैयाअनलाइन — कलैया, बारा र मधेशको स्थानीय समाचार।",
+      path: "/",
+      imagePath: "/og.jpg",
+      type: "website",
+    }),
+});
 
 const DESK_TABS = [
   { slug: "news", label: "राष्ट्रिय", aliases: ["news", "समाचार", "राष्ट्रिय", "national"], icon: Newspaper },

@@ -6,34 +6,19 @@ import { ShareBar } from "@/components/share-bar";
 import { toNpDigits } from "@/data/articles";
 import { getGalleryPost, type GalleryPhoto, type GalleryPost } from "@/lib/gallery-desk";
 import { incrementView } from "@/lib/views";
+import { sharePageMeta } from "@/lib/site-url";
 
 export const Route = createFileRoute("/gallery/$slug")({
   loader: ({ params }) => getGalleryPost({ data: { slug: params.slug } }),
   head: ({ loaderData, params }) => {
     const post = loaderData;
-    const origin = "https://www.kalaiyaonline.com";
     const slug = post?.slug || params.slug;
-    const headline = post?.title?.trim() || "KalaiyaOnline";
-    const image = post?.coverUrl || post?.photos?.[0]?.imageUrl
-      ? `${origin}/share-image/gallery/${encodeURIComponent(slug)}`
-      : `${origin}/og.jpg`;
-    const url = `${origin}/gallery/${encodeURIComponent(slug)}`;
-    return {
-      meta: [
-        { title: post?.title ? `${post.title} | KalaiyaOnline` : "KalaiyaOnline" },
-        { property: "og:type", content: "article" },
-        { property: "og:site_name", content: "KalaiyaOnline" },
-        { property: "og:title", content: headline },
-        { property: "og:description", content: post?.place || "ग्यालरी" },
-        { property: "og:image", content: image },
-        { property: "og:image:secure_url", content: image },
-        { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: headline },
-        { name: "twitter:image", content: image },
-      ],
-      links: [{ rel: "canonical", href: url }],
-    };
+    return sharePageMeta({
+      title: post?.title?.trim() || "KalaiyaOnline",
+      description: post?.place || "ग्यालरी",
+      path: `/gallery/${encodeURIComponent(slug)}`,
+      imagePath: `/share-image/gallery/${encodeURIComponent(slug)}`,
+    });
   },
   component: GalleryPostPage,
 });

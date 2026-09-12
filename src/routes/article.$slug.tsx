@@ -18,46 +18,21 @@ import { getStoryEngagement } from "@/lib/engagement";
 import { usePrefs } from "@/lib/prefs";
 import { categoryLabel, useCategories } from "@/lib/use-categories";
 import { incrementView } from "@/lib/views";
+import { sharePageMeta } from "@/lib/site-url";
 
 export const Route = createFileRoute("/article/$slug")({
   loader: ({ params }) => getPublishedStory({ data: { slug: params.slug } }),
   head: ({ loaderData, params }) => {
     const story = loaderData;
-    const origin = "https://www.kalaiyaonline.com";
     const slug = story?.slug || params.slug;
     const headline = story?.title?.trim() || "KalaiyaOnline";
-    const title = story?.title ? `${story.title} | KalaiyaOnline` : "KalaiyaOnline";
-    const desc = (story?.excerpt || story?.body || "कलैया, बारा र मधेशको स्थानीय समाचार।")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 180);
-    const image = story?.imageUrl
-      ? `${origin}/share-image/article/${encodeURIComponent(slug)}`
-      : `${origin}/og.jpg`;
-    const url = `${origin}/article/${encodeURIComponent(slug)}`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { name: "robots", content: "index,follow" },
-        { property: "og:type", content: "article" },
-        { property: "og:locale", content: "ne_NP" },
-        { property: "og:site_name", content: "KalaiyaOnline" },
-        { property: "og:title", content: headline },
-        { property: "og:description", content: desc },
-        { property: "og:url", content: url },
-        { property: "og:image", content: image },
-        { property: "og:image:secure_url", content: image },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: headline },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: headline },
-        { name: "twitter:description", content: desc },
-        { name: "twitter:image", content: image },
-      ],
-      links: [{ rel: "canonical", href: url }],
-    };
+    const desc = story?.excerpt || story?.body || "";
+    return sharePageMeta({
+      title: headline,
+      description: desc,
+      path: `/article/${encodeURIComponent(slug)}`,
+      imagePath: `/api/og/article/${encodeURIComponent(slug)}`,
+    });
   },
   component: ArticlePage,
 });

@@ -22,12 +22,14 @@ export function ChromeBoot({ children }: { children: ReactNode }) {
     void import("@/lib/site")
       .then((m) => m.getSiteIdentity())
       .then((site) => {
+        if (window.location.pathname !== "/") return;
         if (site.name) document.title = site.tagline ? `${site.name} — ${site.tagline}` : site.name;
       })
       .catch(() => undefined);
     void import("@/lib/seo")
       .then((m) => m.getSeoSettings())
       .then((seo) => {
+        if (window.location.pathname !== "/") return;
         if (seo.title) document.title = seo.title;
       })
       .catch(() => undefined);
