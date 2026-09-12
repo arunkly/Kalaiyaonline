@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AD_SLOTS, createAd, deleteAd, listAds, type AdItem, type AdKind } from "@/lib/ads";
+import { AD_SLOTS, POPUP_FREQ, createAd, deleteAd, listAds, type AdItem, type AdKind, type PopupFreq } from "@/lib/ads";
 
 const field =
   "mt-1 w-full rounded-xl border border-line bg-paper px-3 py-3 outline-none focus:border-crimson";
@@ -13,6 +13,8 @@ export function AdsDeskPanel() {
   const [imageUrl, setImageUrl] = useState("");
   const [html, setHtml] = useState("");
   const [href, setHref] = useState("");
+  const [freq, setFreq] = useState<PopupFreq>("session");
+  const [delaySec, setDelaySec] = useState(2);
   const [error, setError] = useState<string | null>(null);
 
   function refresh() {
@@ -30,7 +32,7 @@ export function AdsDeskPanel() {
         className="space-y-3 rounded-2xl border border-line bg-surface p-5"
         onSubmit={(e) => {
           e.preventDefault();
-          void createAd({ data: { slot, kind, title, body, imageUrl, html, href, active: true } })
+          void createAd({ data: { slot, kind, title, body, imageUrl, html, href, active: true, freq, delaySec } })
             .then(() => {
               setTitle("");
               setBody("");
@@ -43,6 +45,11 @@ export function AdsDeskPanel() {
         }}
       >
         <h2 className="font-display text-2xl">नयाँ विज्ञापन</h2>
+        {slot === "popup" ? (
+          <p className="rounded-xl bg-chip px-3 py-2 text-sm text-ink-soft">
+            पपअप साइटको बीचमा देखिन्छ। तलको नियमले कति पटक र कति ढिलो देखाउने तय गर्छ।
+          </p>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-medium">
             स्थान
@@ -63,6 +70,30 @@ export function AdsDeskPanel() {
             </select>
           </label>
         </div>
+        {slot === "popup" ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm font-medium">
+              देखाउने नियम
+              <select value={freq} onChange={(e) => setFreq(e.target.value as PopupFreq)} className={field}>
+                {POPUP_FREQ.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium">
+              ढिलाइ (सेकेन्ड)
+              <select value={delaySec} onChange={(e) => setDelaySec(Number(e.target.value))} className={field}>
+                <option value={0}>तुरुन्त</option>
+                <option value={2}>२ सेकेन्ड</option>
+                <option value={5}>५ सेकेन्ड</option>
+                <option value={8}>८ सेकेन्ड</option>
+                <option value={15}>१५ सेकेन्ड</option>
+              </select>
+            </label>
+          </div>
+        ) : null}
         <label className="block text-sm font-medium">
           शीर्षक
           <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} />
@@ -98,6 +129,9 @@ export function AdsDeskPanel() {
             <div>
               <p className="text-xs text-muted">
                 {AD_SLOTS.find((s) => s.id === ad.slot)?.label ?? ad.slot} · {ad.kind}
+                {ad.slot === "popup"
+                  ? ` · ${POPUP_FREQ.find((f) => f.id === ad.freq)?.label ?? "सत्र"} · ${ad.delaySec ?? 0}से.`
+                  : ""}
               </p>
               <p className="font-semibold">{ad.title || "विज्ञापन"}</p>
             </div>

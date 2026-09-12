@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { election, hydrateElection, syncLocalBody, syncSeat, type Candidate, type ElectionData, type LocalBody, type Party, type Politician } from "@/lib/election";
+import { election, hydrateElection, normalizeStatus, syncLocalBody, syncSeat, type Candidate, type ElectionData, type LocalBody, type Party, type Politician } from "@/lib/election";
 
 const RESULTS_URL =
   "https://election.onlinekhabar.com/wp-json/okelapi/v1/2082/home/election-results?limit=40";
@@ -58,11 +58,15 @@ export async function readElectionDesk(): Promise<ElectionData> {
 async function writeElectionDesk(data: ElectionData) {
   const sql = await ensureTable();
   const payload = JSON.stringify(data);
-  await sql`
-    insert into election_desk (id, payload, updated_at)
-    values (${"main"}, ${payload}, now())
-    on conflict (id) do update set payload = excluded.payload, updated_at = now()
-  `;
+  try {
+    await sql`
+      insert into election_desk (id, payload, updated_at)
+      values (${"main"}, ${payload}, now())
+      on conflict (id) do update set payload = excluded.payload, updated_at = now()
+    `;
+  } catch (err) {
+    throw new Error(err instanceof Error ? `सेभ भएन: ${err.message}` : "सेभ भएन।");
+  }
 }
 
 function mergeParties(current: Party[], incoming: FeedParty[]): Party[] {
@@ -146,7 +150,7 @@ export const setElectionLive = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ enabled: z.boolean() }))
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     desk.live = { enabled: data.enabled, at: desk.live?.at ?? "", ok: desk.live?.ok ?? false };
     await writeElectionDesk(desk);
@@ -172,40 +176,65 @@ function cid(prefix: string) {
 
 const candidateZ = z.object({
   id: z.string().max(80).optional(),
-  name: z.string().trim().min(1).max(80),
-  party: z.string().max(80).optional(),
+  name: z.string().max(200).optional(),
+  party: z.string().max(120).optional(),
   partySlug: z.string().max(80).optional(),
-  votes: z.coerce.number().min(0).max(20_000_000),
+  votes: z.coerce.number().min(0).max(20_000_000).optional(),
   winner: z.boolean().optional(),
   photo: z.string().max(2000).optional(),
   bio: z.string().max(800).optional(),
+  symbol: z.string().max(40).optional(),
+  age: z.string().max(20).optional(),
+  gender: z.string().max(20).optional(),
+  meta: z.string().max(80).optional(),
 });
 
 function asCandidate(row: z.infer<typeof candidateZ>, i: number): Candidate {
   return {
     id: row.id?.trim() || cid(`c${i}`),
-    name: row.name.trim(),
+    name: (row.name || "").trim(),
     party: row.party?.trim() || "स्वतन्त्र",
     partySlug: row.partySlug?.trim() || "independent",
     votes: Number(row.votes) || 0,
     winner: Boolean(row.winner),
-    meta: "",
+    meta: row.symbol?.trim() || row.meta?.trim() || "",
     photo: cleanUrl(row.photo),
     bio: row.bio?.trim() || "",
+    symbol: row.symbol?.trim() || "",
+    age: row.age?.trim() || "",
+    gender: row.gender?.trim() || "",
   };
+}
+
+function namedCandidates(rows: z.infer<typeof candidateZ>[]) {
+  return rows.map(asCandidate).filter((row) => row.name);
 }
 
 export const saveConstituency = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator(z.object({ id: z.string().min(1).max(40), candidates: z.array(candidateZ).max(80) }))
+  .validator(
+    z.object({
+      id: z.string().min(1).max(40),
+      candidates: z.array(candidateZ).max(80),
+      status: z.string().max(40).optional(),
+      votesCounted: z.coerce.number().min(0).max(20_000_000).optional(),
+      voters: z.coerce.number().min(0).max(20_000_000).optional(),
+      invalidVotes: z.coerce.number().min(0).max(20_000_000).optional(),
+    }),
+  )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     const idx = desk.constituencies.findIndex((c) => c.id === data.id);
     if (idx < 0) throw new Error("क्षेत्र भेटिएन।");
+    const prev = desk.constituencies[idx];
     desk.constituencies[idx] = syncSeat({
-      ...desk.constituencies[idx],
-      candidates: data.candidates.map(asCandidate),
+      ...prev,
+      status: normalizeStatus(data.status || prev.status),
+      votesCounted: data.votesCounted ?? prev.votesCounted,
+      voters: data.voters ?? prev.voters,
+      invalidVotes: data.invalidVotes ?? prev.invalidVotes,
+      candidates: namedCandidates(data.candidates),
     });
     await writeElectionDesk(desk);
     return desk;
@@ -220,11 +249,12 @@ export const saveLocalBody = createServerFn({ method: "POST" })
       type: z.string().max(40),
       post: z.string().max(40),
       ward: z.string().max(20).optional(),
+      status: z.string().max(40).optional(),
       candidates: z.array(candidateZ).max(80),
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     const id = data.id?.trim() || cid("local");
     const body: LocalBody = syncLocalBody({
@@ -235,8 +265,8 @@ export const saveLocalBody = createServerFn({ method: "POST" })
       type: data.type,
       post: data.post,
       ward: data.ward?.trim() || "",
-      status: data.candidates.some((c) => c.winner) ? "declared" : "pending",
-      candidates: data.candidates.map(asCandidate),
+      status: normalizeStatus(data.status || (data.candidates.some((c) => c.winner) ? "declared" : "pending")),
+      candidates: namedCandidates(data.candidates),
       winnerName: "",
       winnerParty: "",
       winnerVotes: 0,
@@ -254,7 +284,7 @@ export const deleteLocalBody = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.string().min(1).max(40) }))
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     desk.localBodies = (desk.localBodies ?? []).filter((b) => b.id !== data.id);
     await writeElectionDesk(desk);
@@ -279,7 +309,7 @@ export const savePolitician = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     const row: Politician = {
       id: data.id?.trim() || cid("pol"),
@@ -307,7 +337,7 @@ export const deletePolitician = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.string().min(1).max(40) }))
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     desk.politicians = (desk.politicians ?? []).filter((p) => p.id !== data.id);
     await writeElectionDesk(desk);
@@ -316,11 +346,57 @@ export const deletePolitician = createServerFn({ method: "POST" })
 
 export const setElectionFrontPage = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator(z.object({ frontPage: z.enum(["hor", "local"]) }))
+  .validator(z.object({ frontPage: z.enum(["home", "hor", "local"]) }))
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "election");
     const desk = await readElectionDesk();
     desk.frontPage = data.frontPage;
     await writeElectionDesk(desk);
     return desk;
   });
+
+export const setElectionSettings = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      horYear: z.string().trim().min(1).max(20),
+      localYear: z.string().trim().min(1).max(20),
+      showEmbed: z.boolean(),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    await assertCap(context.userId, "election");
+    const desk = await readElectionDesk();
+    desk.years = { hor: data.horYear, local: data.localYear };
+    desk.showEmbed = data.showEmbed;
+    await writeElectionDesk(desk);
+    return desk;
+  });
+
+export const saveNotice = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ id: z.string().max(40).optional(), title: z.string().trim().min(2).max(120), body: z.string().max(400).optional() }))
+  .handler(async ({ data, context }) => {
+    await assertCap(context.userId, "election");
+    const desk = await readElectionDesk();
+    const row = { id: data.id?.trim() || cid("note"), title: data.title, body: data.body?.trim() || "" };
+    const list = desk.notices ?? [];
+    const idx = list.findIndex((n) => n.id === row.id);
+    if (idx >= 0) list[idx] = row;
+    else list.unshift(row);
+    desk.notices = list;
+    await writeElectionDesk(desk);
+    return desk;
+  });
+
+export const deleteNotice = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ id: z.string().min(1).max(40) }))
+  .handler(async ({ data, context }) => {
+    await assertCap(context.userId, "election");
+    const desk = await readElectionDesk();
+    desk.notices = (desk.notices ?? []).filter((n) => n.id !== data.id);
+    await writeElectionDesk(desk);
+    return desk;
+  });
+

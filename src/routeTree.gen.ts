@@ -18,6 +18,7 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DateConverterRouteImport } from './routes/date-converter'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ElectionRouteImport } from './routes/election'
+import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
@@ -34,6 +35,7 @@ import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as DirectoryIdRouteImport } from './routes/directory.$id'
 import { Route as ElectionIdRouteImport } from './routes/election.$id'
+import { Route as ElectionEmbedRouteImport } from './routes/election.embed'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as MemberIdRouteImport } from './routes/member.$id'
 import { Route as PoliticianIdRouteImport } from './routes/politician.$id'
@@ -88,6 +90,11 @@ const DirectoryRoute = DirectoryRouteImport.update({
 const ElectionRoute = ElectionRouteImport.update({
   id: '/election',
   path: '/election',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EpaperRoute = EpaperRouteImport.update({
+  id: '/epaper',
+  path: '/epaper',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -170,6 +177,11 @@ const ElectionIdRoute = ElectionIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ElectionRoute,
 } as any)
+const ElectionEmbedRoute = ElectionEmbedRouteImport.update({
+  id: '/embed',
+  path: '/embed',
+  getParentRoute: () => ElectionRoute,
+} as any)
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -231,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
   '/election': typeof ElectionRouteWithChildren
+  '/epaper': typeof EpaperRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
@@ -247,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
   '/election/$id': typeof ElectionIdRoute
+  '/election/embed': typeof ElectionEmbedRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/politician/$id': typeof PoliticianIdRoute
@@ -268,6 +282,7 @@ export interface FileRoutesByTo {
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
   '/election': typeof ElectionRouteWithChildren
+  '/epaper': typeof EpaperRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
@@ -284,6 +299,7 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
   '/election/$id': typeof ElectionIdRoute
+  '/election/embed': typeof ElectionEmbedRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/politician/$id': typeof PoliticianIdRoute
@@ -306,6 +322,7 @@ export interface FileRoutesById {
   '/date-converter': typeof DateConverterRoute
   '/directory': typeof DirectoryRouteWithChildren
   '/election': typeof ElectionRouteWithChildren
+  '/epaper': typeof EpaperRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/gallery': typeof GalleryRouteWithChildren
   '/login': typeof LoginRoute
@@ -322,6 +339,7 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/directory/$id': typeof DirectoryIdRoute
   '/election/$id': typeof ElectionIdRoute
+  '/election/embed': typeof ElectionEmbedRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/member/$id': typeof MemberIdRoute
   '/politician/$id': typeof PoliticianIdRoute
@@ -345,6 +363,7 @@ export interface FileRouteTypes {
     | '/date-converter'
     | '/directory'
     | '/election'
+    | '/epaper'
     | '/forgot-password'
     | '/gallery'
     | '/login'
@@ -361,6 +380,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/directory/$id'
     | '/election/$id'
+    | '/election/embed'
     | '/gallery/$slug'
     | '/member/$id'
     | '/politician/$id'
@@ -382,6 +402,7 @@ export interface FileRouteTypes {
     | '/date-converter'
     | '/directory'
     | '/election'
+    | '/epaper'
     | '/forgot-password'
     | '/gallery'
     | '/login'
@@ -398,6 +419,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/directory/$id'
     | '/election/$id'
+    | '/election/embed'
     | '/gallery/$slug'
     | '/member/$id'
     | '/politician/$id'
@@ -419,6 +441,7 @@ export interface FileRouteTypes {
     | '/date-converter'
     | '/directory'
     | '/election'
+    | '/epaper'
     | '/forgot-password'
     | '/gallery'
     | '/login'
@@ -435,6 +458,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/directory/$id'
     | '/election/$id'
+    | '/election/embed'
     | '/gallery/$slug'
     | '/member/$id'
     | '/politician/$id'
@@ -457,6 +481,7 @@ export interface RootRouteChildren {
   DateConverterRoute: typeof DateConverterRoute
   DirectoryRoute: typeof DirectoryRouteWithChildren
   ElectionRoute: typeof ElectionRouteWithChildren
+  EpaperRoute: typeof EpaperRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GalleryRoute: typeof GalleryRouteWithChildren
   LoginRoute: typeof LoginRoute
@@ -542,6 +567,13 @@ declare module '@tanstack/react-router' {
       path: '/election'
       fullPath: '/election'
       preLoaderRoute: typeof ElectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/epaper': {
+      id: '/epaper'
+      path: '/epaper'
+      fullPath: '/epaper'
+      preLoaderRoute: typeof EpaperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -656,6 +688,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ElectionIdRouteImport
       parentRoute: typeof ElectionRoute
     }
+    '/election/embed': {
+      id: '/election/embed'
+      path: '/embed'
+      fullPath: '/election/embed'
+      preLoaderRoute: typeof ElectionEmbedRouteImport
+      parentRoute: typeof ElectionRoute
+    }
     '/gallery/$slug': {
       id: '/gallery/$slug'
       path: '/$slug'
@@ -753,12 +792,14 @@ const DirectoryRouteWithChildren = DirectoryRoute._addFileChildren(
 
 interface ElectionRouteChildren {
   ElectionIdRoute: typeof ElectionIdRoute
+  ElectionEmbedRoute: typeof ElectionEmbedRoute
   ElectionLocalIdRoute: typeof ElectionLocalIdRoute
   ElectionPoliticianIdRoute: typeof ElectionPoliticianIdRoute
 }
 
 const ElectionRouteChildren: ElectionRouteChildren = {
   ElectionIdRoute: ElectionIdRoute,
+  ElectionEmbedRoute: ElectionEmbedRoute,
   ElectionLocalIdRoute: ElectionLocalIdRoute,
   ElectionPoliticianIdRoute: ElectionPoliticianIdRoute,
 }
@@ -788,6 +829,7 @@ const rootRouteChildren: RootRouteChildren = {
   DateConverterRoute: DateConverterRoute,
   DirectoryRoute: DirectoryRouteWithChildren,
   ElectionRoute: ElectionRouteWithChildren,
+  EpaperRoute: EpaperRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GalleryRoute: GalleryRouteWithChildren,
   LoginRoute: LoginRoute,

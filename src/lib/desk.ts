@@ -2,7 +2,7 @@ import { parseCategories } from "@/data/articles";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { ADMIN_EMAIL } from "@/lib/admin";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 const storyInput = z.object({
@@ -126,7 +126,7 @@ function slugifyCat(label: string) {
 }
 
 async function assertAdmin(userId: string) {
-  await assertAppAdmin(userId);
+  await assertCap(userId, "news");
 }
 
 export const ensureAdminReady = createServerFn({ method: "POST" }).handler(
@@ -278,7 +278,7 @@ export const listAdminStories = createServerFn({ method: "GET" })
 export const listTrashStories = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     try {
       return await sql<DeskStory>`
@@ -383,7 +383,7 @@ export const trashStory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     await sql`
       update desk_stories
@@ -397,7 +397,7 @@ export const restoreStory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     await sql`
       update desk_stories
@@ -411,7 +411,7 @@ export const purgeStory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     await sql`
       delete from desk_stories
@@ -424,7 +424,7 @@ export const createCategory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ label: z.string().min(2).max(40) }))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     const slug = slugifyCat(data.label);
     const rows = await sql<DeskCategory>`
@@ -444,7 +444,7 @@ export const updateCategory = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     const existing = await sql<DeskCategory>`
       select id, slug, label from desk_categories where id = ${data.id}
@@ -485,7 +485,7 @@ export const deleteCategory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ id: z.number() }))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    await assertCap(context.userId, "newsDelete");
     const sql = await ensureDesk();
     const existing = await sql<DeskCategory>`
       select id, slug, label from desk_categories where id = ${data.id}

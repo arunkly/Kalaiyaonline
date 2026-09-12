@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { isAdminEmail } from "@/lib/admin";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap, parseRole, type AppRole } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
-export type AppRole = "member" | "editor" | "admin";
+export type { AppRole };
 
 export type RegisteredUser = {
   id: string;
@@ -14,7 +14,7 @@ export type RegisteredUser = {
 };
 
 async function assertAdmin(userId: string) {
-  await assertAppAdmin(userId);
+  await assertCap(userId, "users");
 }
 
 export const listRegisteredUsers = createServerFn({ method: "GET" })
@@ -33,17 +33,21 @@ export const listRegisteredUsers = createServerFn({ method: "GET" })
       id: u.id,
       name: u.name,
       email: u.email,
-      role: (roles.find((r) => r.userId === u.id)?.role as AppRole) || (isAdminEmail(u.email) ? "admin" : "member"),
+      role: parseRole(roles.find((r) => r.userId === u.id)?.role, u.email),
     })) satisfies RegisteredUser[];
   });
 
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator(z.object({ userId: z.string().min(1).max(80), role: z.enum(["member", "editor", "admin"]) }))
+  .validator(z.object({ userId: z.string().min(1).max(80), role: z.enum(["member", "admin", "eadmin", "nadmin"]) }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
+    const target = await sql<{ email: string | null }>`
+      select email from "user" where id = ${data.userId} limit 1
+    `;
+    if (isAdminEmail(target[0]?.email)) throw new Error("सुपर एडमिनको भूमिका बदल्न मिल्दैन।");
     await sql`
       insert into user_roles (user_id, role, updated_at)
       values (${data.userId}, ${data.role}, now())

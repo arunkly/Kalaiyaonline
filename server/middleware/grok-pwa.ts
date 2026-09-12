@@ -36,11 +36,10 @@ function requestHost(event: GrokPwaEvent): string {
   );
 }
 
-function injectHeadStreaming(response: Response, host: string, skipOg = false): Response {
+function injectHeadStreaming(response: Response, host: string): Response {
   const injector = createHeadInjector({
     host,
     site: grokOgIdentity.site,
-    skipOg,
   });
   const transformed = response.body!.pipeThrough(
     new TransformStream<Uint8Array, Uint8Array>({
@@ -99,32 +98,6 @@ export default async function grokPwaMiddleware(
 
   if (!isDocumentPath(path)) return next();
 
-  const sharePath = path.match(/^\/(article|gallery|directory)\/([^/]+)\/?$/);
-  const ua = event.req.headers.get("user-agent") ?? "";
-  const isShareBot =
-    /facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|LinkedInBot|TelegramBot|Discordbot|Pinterest/i.test(
-      ua,
-    );
-  if (isShareBot && sharePath) {
-    try {
-      const { renderShareCrawlerHtml } = await import("../../src/lib/share-crawler");
-      const html = await renderShareCrawlerHtml(
-        sharePath[1] as "article" | "gallery" | "directory",
-        decodeURIComponent(sharePath[2]),
-      );
-      if (html) {
-        return new Response(html, {
-          headers: {
-            "content-type": "text/html; charset=utf-8",
-            "cache-control": "public, max-age=300",
-          },
-        });
-      }
-    } catch {
-      /* fall through to the app document */
-    }
-  }
-
   const result = await next();
   if (
     result instanceof Response &&
@@ -132,7 +105,7 @@ export default async function grokPwaMiddleware(
     String(result.headers.get("content-type") ?? "").includes("text/html") &&
     !result.headers.get("content-encoding")
   ) {
-    return injectHeadStreaming(result, requestHost(event), Boolean(sharePath));
+    return injectHeadStreaming(result, requestHost(event));
   }
   return result;
 }

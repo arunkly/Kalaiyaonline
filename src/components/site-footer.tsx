@@ -9,6 +9,8 @@ import {
   LineChart,
   Mail,
   MapPin,
+  MessageCircle,
+  Newspaper,
   Phone,
   Shield,
   Type,
@@ -19,23 +21,25 @@ import type { AboutPage } from "@/lib/about";
 import { AppLogo } from "@/components/app-logo";
 import { useFeatures } from "@/components/features-provider";
 import { useSite } from "@/components/site-provider";
-import type { FeatureKey } from "@/lib/features";
+import { chromeItems } from "@/lib/chrome-nav";
 import { toNpDigits } from "@/data/articles";
 
-const FOOTER_LINKS: { to: string; label: string; icon: typeof Home; feature?: FeatureKey }[] = [
-  { to: "/", label: "गृह", icon: Home },
-  { to: "/gallery", label: "ग्यालरी", icon: Camera, feature: "gallery" },
-  { to: "/directory", label: "डाइरेक्ट्री", icon: Building2, feature: "directory" },
-  { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" },
-  { to: "/election", label: "निर्वाचन", icon: Vote, feature: "election" },
-  { to: "/members", label: "दर्ता सदस्य", icon: Users, feature: "members" },
-  { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" },
-  { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" },
-  { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays, feature: "dateConverter" },
-  { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type, feature: "preeti" },
-  { to: "/about", label: "हाम्रोबारे", icon: Info, feature: "about" },
-  { to: "/privacy", label: "गोपनीयता", icon: Shield, feature: "privacy" },
-];
+const ICONS: Record<string, typeof Home> = {
+  home: Home,
+  gallery: Camera,
+  directory: Building2,
+  blood: Droplet,
+  election: Vote,
+  epaper: Newspaper,
+  chat: MessageCircle,
+  members: Users,
+  market: LineChart,
+  patro: CalendarDays,
+  dateConverter: CalendarDays,
+  preeti: Type,
+  about: Info,
+  privacy: Shield,
+};
 
 const chip =
   "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[#e8efe9] transition hover:border-[#ffd27a]/50 hover:bg-[#ffd27a]/10 hover:text-[#ffd27a]";
@@ -43,7 +47,7 @@ const chip =
 export function SiteFooter({ about }: { about: AboutPage | null }) {
   const features = useFeatures();
   const site = useSite();
-  const links = FOOTER_LINKS.filter((l) => !l.feature || features[l.feature]);
+  const links = chromeItems(site.footerMenu, features);
   const brand = about?.orgName || site.nameNp || site.name;
   const blurb = String(about?.body || site.tagline || site.description).slice(0, 160);
 
@@ -103,12 +107,15 @@ export function SiteFooter({ about }: { about: AboutPage | null }) {
         <div className="sm:col-span-3">
           <p className="text-[11px] font-bold tracking-[0.18em] text-mark">मेनु</p>
           <nav className="mt-3 flex flex-wrap gap-2 text-sm">
-            {links.map(({ to, label, icon: Icon }) => (
-              <Link key={to} to={to as "/"} className={chip}>
-                <Icon className="size-3.5 shrink-0" />
-                {label}
-              </Link>
-            ))}
+            {links.map((item) => {
+              const Icon = ICONS[item.key] || Home;
+              return (
+                <Link key={item.to} to={item.to as "/"} className={chip}>
+                  <Icon className="size-3.5 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>

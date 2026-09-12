@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] as const;
@@ -20,7 +20,7 @@ export type BloodDonor = {
 };
 
 async function assertAdmin(userId: string) {
-  await assertAppAdmin(userId);
+  await assertCap(userId, "blood");
 }
 
 const donorInput = z.object({

@@ -5,10 +5,11 @@ import {
   listChatWarnings,
   setUserName,
   setUserRole,
-  type AppRole,
   type AppUserRow,
   type ChatWarning,
 } from "@/lib/users";
+import { ROLE_LABEL } from "@/lib/admin-access";
+import { isAdminEmail } from "@/lib/admin";
 
 function UserRow({
   user,
@@ -53,16 +54,22 @@ function UserRow({
           {saving ? "…" : "नाम सेभ"}
         </button>
         <select
-          value={user.role}
+          value={user.role === "superadmin" ? "superadmin" : user.role}
+          disabled={isAdminEmail(user.email)}
           onChange={(e) =>
-            void setUserRole({ data: { userId: user.id, role: e.target.value as AppRole } }).then(onSaved)
+            void setUserRole({
+              data: { userId: user.id, role: e.target.value as "member" | "admin" | "eadmin" | "nadmin" },
+            }).then(onSaved)
           }
-          className="rounded-xl border border-line bg-paper px-3 py-2 text-sm"
+          className="rounded-xl border border-line bg-paper px-3 py-2 text-sm disabled:opacity-60"
         >
-          <option value="member">सदस्य</option>
-          <option value="editor">सम्पादक</option>
-          <option value="admin">प्रशासक</option>
+          {isAdminEmail(user.email) ? <option value="superadmin">{ROLE_LABEL.superadmin}</option> : null}
+          <option value="admin">{ROLE_LABEL.admin}</option>
+          <option value="eadmin">{ROLE_LABEL.eadmin}</option>
+          <option value="nadmin">{ROLE_LABEL.nadmin}</option>
+          <option value="member">{ROLE_LABEL.member}</option>
         </select>
+        {isAdminEmail(user.email) ? null : (
         <button
           type="button"
           className="text-sm font-semibold text-mark"
@@ -75,6 +82,7 @@ function UserRow({
         >
           मेट्नुहोस्
         </button>
+        )}
       </div>
     </li>
   );
@@ -101,7 +109,10 @@ export function UsersDeskPanel() {
   return (
     <section className="rounded-2xl border border-line bg-surface p-5">
       <h2 className="font-display text-2xl">प्रयोगकर्ता र भूमिका</h2>
-      <p className="mt-1 text-sm text-muted">नाम बदल्न, भूमिका दिन वा खाता मेट्न सकिन्छ।</p>
+      <p className="mt-1 text-sm text-muted">
+        सुपर एडमिन: सबै सेटिङ। एडमिन: समाचार, ग्यालरी, डाइरेक्ट्री, रक्तदाता, निर्वाचन।
+        eadmin: निर्वाचन मात्र। nadmin: समाचार थप्न सकिन्छ, प्रकाशित मेट्न मिल्दैन।
+      </p>
       {error ? <p className="mt-2 text-sm text-mark">{error}</p> : null}
       <ul className="mt-4 divide-y divide-line">
         {rows.map((u) => (

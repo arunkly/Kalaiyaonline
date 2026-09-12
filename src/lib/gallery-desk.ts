@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type GalleryCategory = { id: number; slug: string; label: string };
@@ -43,7 +43,7 @@ function slugify(title: string) {
 }
 
 async function assertAdmin(userId: string) {
-  await assertAppAdmin(userId);
+  await assertCap(userId, "gallery");
 }
 
 async function photosFor(sql: Awaited<ReturnType<typeof import("@/lib/db").getSql>>, ids: number[]) {

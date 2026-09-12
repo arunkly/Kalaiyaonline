@@ -10,6 +10,9 @@ export type Candidate = {
   meta: string;
   photo?: string;
   bio?: string;
+  symbol?: string;
+  age?: string;
+  gender?: string;
 };
 
 export type Constituency = {
@@ -36,6 +39,7 @@ export type Constituency = {
   winnerParty: string;
   winnerPartySlug: string;
   winnerVotes: number;
+  invalidVotes?: number;
 };
 
 export type Party = {
@@ -154,8 +158,17 @@ export type ElectionData = {
     ok: boolean;
   };
   display?: DisplayPlan;
-  frontPage?: "hor" | "local";
+  frontPage?: "home" | "hor" | "local";
   politicians?: Politician[];
+  notices?: ElectionNotice[];
+  years?: { hor: string; local: string };
+  showEmbed?: boolean;
+};
+
+export type ElectionNotice = {
+  id: string;
+  title: string;
+  body: string;
 };
 
 export type Politician = {
@@ -184,6 +197,63 @@ export const LOCAL_POSTS = [
   { id: "deputy", label: "उपप्रमुख / उपाध्यक्ष" },
   { id: "ward-chair", label: "वडा अध्यक्ष" },
 ] as const;
+
+export const SEAT_STATUS = [
+  { id: "pending", label: "नतिजा आउन बाँकी" },
+  { id: "counting", label: "गणना हुँदै" },
+  { id: "declared", label: "घोषित" },
+] as const;
+
+export const GENDERS = [
+  { id: "", label: "—" },
+  { id: "male", label: "पुरुष" },
+  { id: "female", label: "महिला" },
+  { id: "other", label: "अन्य" },
+] as const;
+
+export const BARA_MAP = { lat: 27.034, lng: 85.008 };
+
+export const PALIKA_COORDS: Record<string, { lat: number; lng: number }> = {
+  kalaiya: { lat: 27.033, lng: 85.0 },
+  jitpursimara: { lat: 27.164, lng: 84.98 },
+  kolhabi: { lat: 27.073, lng: 85.082 },
+  nijgadh: { lat: 27.199, lng: 85.171 },
+  mahagadhimai: { lat: 26.982, lng: 85.052 },
+  simraungadh: { lat: 26.886, lng: 85.123 },
+  pacharauta: { lat: 26.964, lng: 85.088 },
+  adarshkotwal: { lat: 26.948, lng: 85.065 },
+  karaiyamai: { lat: 27.018, lng: 85.048 },
+  devtal: { lat: 26.975, lng: 85.138 },
+  parwanipur: { lat: 27.075, lng: 84.948 },
+  pheta: { lat: 26.918, lng: 85.042 },
+  baragadhi: { lat: 26.902, lng: 84.995 },
+  bishrampur: { lat: 26.932, lng: 85.118 },
+  subarna: { lat: 27.078, lng: 85.125 },
+  prasauni: { lat: 27.002, lng: 84.968 },
+};
+
+export const SEAT_COORDS: Record<number, { lat: number; lng: number }> = {
+  1: { lat: 27.033, lng: 85.0 },
+  2: { lat: 27.164, lng: 84.98 },
+  3: { lat: 27.16, lng: 85.13 },
+  4: { lat: 26.9, lng: 85.1 },
+};
+
+export function palikaCoords(id: string) {
+  return PALIKA_COORDS[id] || BARA_MAP;
+}
+
+export function seatCoords(seat: number) {
+  return SEAT_COORDS[seat] || BARA_MAP;
+}
+
+export function osmEmbed(lat: number, lng: number, span = 0.09) {
+  const minLon = lng - span;
+  const minLat = lat - span * 0.7;
+  const maxLon = lng + span;
+  const maxLat = lat + span * 0.7;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${minLon}%2C${minLat}%2C${maxLon}%2C${maxLat}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
 
 export function localBodiesOf(data: ElectionData = election): LocalBody[] {
   return data.localBodies ?? [];
@@ -244,8 +314,69 @@ export function hydrateElection(data: ElectionData): ElectionData {
   const next = structuredClone(data);
   if (!next.localBodies?.length) next.localBodies = BARA_LOCAL_SEED.map((b) => ({ ...b }));
   if (!next.politicians) next.politicians = [];
-  if (next.frontPage !== "local") next.frontPage = "hor";
+  if (!next.notices) next.notices = [];
+  if (next.frontPage !== "hor" && next.frontPage !== "local") next.frontPage = "home";
+  if (!next.years?.hor && !next.years?.local) next.years = { hor: "२०८२", local: "२०७९" };
+  else next.years = { hor: next.years?.hor || "२०८२", local: next.years?.local || "२०७९" };
+  if (typeof next.showEmbed !== "boolean") next.showEmbed = true;
+  next.constituencies = next.constituencies.map((seat) => ({
+    ...seat,
+    status: normalizeStatus(seat.status),
+  }));
+  next.localBodies = (next.localBodies ?? []).map((body) => ({
+    ...body,
+    status: normalizeStatus(body.status),
+  }));
   return next;
+}
+
+export function electionYears(data: ElectionData = election) {
+  return {
+    hor: data.years?.hor?.trim() || "२०८२",
+    local: data.years?.local?.trim() || "२०७९",
+  };
+}
+
+export function embedEnabled(data: ElectionData = election) {
+  return data.showEmbed !== false;
+}
+
+export function normalizeStatus(status?: string): "pending" | "counting" | "declared" {
+  const value = (status || "").toLowerCase();
+  if (value === "counting" || value === "live") return "counting";
+  if (value === "declared" || value === "result" || value === "won" || value === "final") return "declared";
+  return "pending";
+}
+
+export function statusLabel(status?: string) {
+  return SEAT_STATUS.find((s) => s.id === normalizeStatus(status))?.label || "नतिजा आउन बाँकी";
+}
+
+export function leadOf(candidates: Candidate[]) {
+  const sorted = [...candidates].sort((a, b) => b.votes - a.votes);
+  const first = sorted[0];
+  const second = sorted[1];
+  const total = candidates.reduce((n, c) => n + (Number(c.votes) || 0), 0);
+  return {
+    lead: first,
+    margin: (first?.votes || 0) - (second?.votes || 0),
+    total,
+    share: first && total ? Math.round((first.votes / total) * 100) : 0,
+  };
+}
+
+export function partyTally(rows: { winnerName?: string; winnerParty?: string }[]) {
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    if (!row.winnerName) continue;
+    const key = row.winnerParty?.trim() || "स्वतन्त्र";
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  return [...map.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+export function noticesOf(data: ElectionData = election): ElectionNotice[] {
+  return data.notices ?? [];
 }
 
 export function syncLocalBody(body: LocalBody): LocalBody {
@@ -265,8 +396,9 @@ export function syncLocalBody(body: LocalBody): LocalBody {
   };
 }
 
-export function frontPageOf(data: ElectionData = election): "hor" | "local" {
-  return data.frontPage === "local" ? "local" : "hor";
+export function frontPageOf(data: ElectionData = election): "home" | "hor" | "local" {
+  if (data.frontPage === "hor" || data.frontPage === "local") return data.frontPage;
+  return "home";
 }
 
 export function displayPlan(data: ElectionData = election): DisplayPlan {

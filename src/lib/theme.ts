@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export const THEME_FONTS = [
@@ -136,7 +136,7 @@ export const saveThemeSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "settings");
     const next = normalizeTheme(data);
     const sql = await ensureThemeTable();
     await sql`

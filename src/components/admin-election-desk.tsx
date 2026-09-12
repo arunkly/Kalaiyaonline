@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  GENDERS,
   LOCAL_BODY_TYPES,
   LOCAL_POSTS,
+  SEAT_STATUS,
   baraLocals,
   baraSeats,
+  electionYears,
+  normalizeStatus,
   politiciansOf,
   seatLabel,
   type Candidate,
+  type Constituency,
   type ElectionData,
   type LocalBody,
   type Politician,
@@ -20,6 +25,7 @@ import {
   saveLocalBody,
   savePolitician,
   setElectionFrontPage,
+  setElectionSettings,
 } from "@/lib/election-desk";
 
 const field =
@@ -28,8 +34,14 @@ const field =
 type DeskTab = "home" | "hor" | "local" | "people";
 
 function emptyCand(): Candidate {
-  return { id: "", name: "", party: "", partySlug: "", votes: 0, winner: false, meta: "", photo: "", bio: "" };
+  return { id: "", name: "", party: "", partySlug: "", votes: 0, winner: false, meta: "", photo: "", bio: "", symbol: "", age: "", gender: "" };
 }
+
+function emptyLocal(): LocalBody {
+  return { id: "", name: "", districtEn: "Bara", districtNp: "बारा", type: "nagarpalika", post: "chief", ward: "", status: "pending", candidates: [], winnerName: "", winnerParty: "", winnerVotes: 0 };
+}
+
+const NEW_LOCAL = emptyLocal();
 
 export function ElectionDeskPanel() {
   const [desk, setDesk] = useState<ElectionData | null>(null);
@@ -57,17 +69,17 @@ export function ElectionDeskPanel() {
   return (
     <section className="space-y-4 rounded-2xl border border-line bg-surface p-5">
       <h2 className="font-display text-2xl">निर्वाचन डेस्क</h2>
-      <p className="text-sm text-muted">बारा जिल्ला — प्रतिनिधिसभा ४ क्षेत्र, स्थानीय निकाय र राजनीतिज्ञ प्रोफाइल।</p>
+      <p className="text-sm text-muted">बारा जिल्ला — प्रतिनिधिसभा ४ क्षेत्र र स्थानीय निकायको नतिजा अपडेट।</p>
       {msg ? <p className="text-sm font-semibold text-[#14934e]">{msg}</p> : null}
       {err ? <p className="text-sm text-mark">{err}</p> : null}
 
       <div className="flex gap-2 overflow-x-auto">
         {(
           [
+            ["home", "होम"],
             ["hor", "प्रतिनिधिसभा"],
             ["local", "स्थानीय निकाय"],
             ["people", "राजनीतिज्ञ"],
-            ["home", "होमपेज"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -86,36 +98,32 @@ export function ElectionDeskPanel() {
       </div>
 
       {tab === "home" ? (
-        <div className="space-y-3">
-          <p className="text-sm text-muted">होमपेजको निर्वाचन अपडेटमा के देखाउने?</p>
-          <div className="flex flex-wrap gap-2">
-            {(["hor", "local"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  setBusy(true);
-                  setErr(null);
-                  void setElectionFrontPage({ data: { frontPage: mode } })
-                    .then((next) => {
-                      setDesk(next);
-                      setMsg(mode === "hor" ? "होमपेजमा प्रतिनिधिसभा देखिन्छ।" : "होमपेजमा स्थानीय निकाय देखिन्छ।");
-                    })
-                    .catch((e) => setErr(e instanceof Error ? e.message : "सेभ भएन।"))
-                    .finally(() => setBusy(false));
-                }}
-                className={
-                  desk.frontPage === mode
-                    ? "rounded-full bg-crimson px-4 py-2 text-sm font-semibold text-paper"
-                    : "rounded-full border border-line px-4 py-2 text-sm"
-                }
-              >
-                {mode === "hor" ? "प्रतिनिधिसभा" : "स्थानीय निकाय"}
-              </button>
-            ))}
-          </div>
-        </div>
+        <HomeSettings
+          desk={desk}
+          busy={busy}
+          onFront={(mode) => {
+            setBusy(true);
+            setErr(null);
+            void setElectionFrontPage({ data: { frontPage: mode } })
+              .then((next) => {
+                setDesk(next);
+                setMsg("सुरुको दृश्य सेभ भयो।");
+              })
+              .catch((e) => setErr(e instanceof Error ? e.message : "सेभ भएन।"))
+              .finally(() => setBusy(false));
+          }}
+          onMeta={(payload) => {
+            setBusy(true);
+            setErr(null);
+            void setElectionSettings({ data: payload })
+              .then((next) => {
+                setDesk(next);
+                setMsg("सेटिङ सेभ भयो।");
+              })
+              .catch((e) => setErr(e instanceof Error ? e.message : "सेभ भएन।"))
+              .finally(() => setBusy(false));
+          }}
+        />
       ) : null}
 
       {tab === "hor" ? (
@@ -123,14 +131,12 @@ export function ElectionDeskPanel() {
           {seats.map((seat) => (
             <SeatEditor
               key={seat.id}
-              seatId={seat.id}
-              title={seatLabel(seat, "np")}
-              candidates={seat.candidates}
+              seat={seat}
               busy={busy}
-              onSave={(candidates) => {
+              onSave={(payload) => {
                 setBusy(true);
                 setErr(null);
-                void saveConstituency({ data: { id: seat.id, candidates } })
+                void saveConstituency({ data: payload })
                   .then((next) => {
                     setDesk(next);
                     setMsg(`${seatLabel(seat, "np")} सेभ भयो।`);
@@ -145,6 +151,23 @@ export function ElectionDeskPanel() {
 
       {tab === "local" ? (
         <div className="space-y-6">
+          <LocalEditor
+            body={NEW_LOCAL}
+            busy={busy}
+            isNew
+            onSave={(payload) => {
+              setBusy(true);
+              setErr(null);
+              void saveLocalBody({ data: payload })
+                .then((next) => {
+                  setDesk(next);
+                  setMsg(`${payload.name} थपियो।`);
+                })
+                .catch((e) => setErr(e instanceof Error ? e.message : "सेभ भएन।"))
+                .finally(() => setBusy(false));
+            }}
+            onDelete={() => undefined}
+          />
           {locals.map((body) => (
             <LocalEditor
               key={body.id}
@@ -201,27 +224,56 @@ export function ElectionDeskPanel() {
 }
 
 function SeatEditor({
-  title,
-  candidates,
+  seat,
   busy,
   onSave,
 }: {
-  seatId: string;
-  title: string;
-  candidates: Candidate[];
+  seat: Constituency;
   busy: boolean;
-  onSave: (rows: Candidate[]) => void;
+  onSave: (payload: { id: string; candidates: Candidate[]; status?: "pending" | "counting" | "declared"; votesCounted?: number; voters?: number; invalidVotes?: number }) => void;
 }) {
-  const [rows, setRows] = useState(candidates);
-  useEffect(() => setRows(candidates), [candidates]);
+  const [rows, setRows] = useState(seat.candidates);
+  const [status, setStatus] = useState(normalizeStatus(seat.status));
+  const [votesCounted, setVotesCounted] = useState(seat.votesCounted || 0);
+  const [voters, setVoters] = useState(seat.voters || 0);
+  const [invalidVotes, setInvalidVotes] = useState(seat.invalidVotes || 0);
+  useEffect(() => {
+    setRows(seat.candidates);
+    setStatus(normalizeStatus(seat.status));
+    setVotesCounted(seat.votesCounted || 0);
+    setVoters(seat.voters || 0);
+    setInvalidVotes(seat.invalidVotes || 0);
+  }, [seat]);
   return (
     <div className="rounded-2xl border border-line p-4">
-      <h3 className="font-display text-xl">{title}</h3>
+      <h3 className="font-display text-xl">{seatLabel(seat, "np")}</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="text-sm font-medium">
+          स्थिति
+          <select value={status} onChange={(e) => setStatus(normalizeStatus(e.target.value))} className={field}>
+            {SEAT_STATUS.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm font-medium">
+          मतदाता
+          <input type="number" min={0} value={voters} onChange={(e) => setVoters(Number(e.target.value) || 0)} className={field} />
+        </label>
+        <label className="text-sm font-medium">
+          गणना मत
+          <input type="number" min={0} value={votesCounted} onChange={(e) => setVotesCounted(Number(e.target.value) || 0)} className={field} />
+        </label>
+        <label className="text-sm font-medium">
+          बदर मत
+          <input type="number" min={0} value={invalidVotes} onChange={(e) => setInvalidVotes(Number(e.target.value) || 0)} className={field} />
+        </label>
+      </div>
       <CandidateFields rows={rows} setRows={setRows} />
       <button
         type="button"
         disabled={busy}
-        onClick={() => onSave(rows)}
+        onClick={() => onSave({ id: seat.id, candidates: rows.filter((r) => r.name.trim()), status: normalizeStatus(status), votesCounted, voters, invalidVotes })}
         className="mt-3 inline-flex min-h-10 items-center rounded-full bg-crimson px-4 text-sm font-semibold text-paper disabled:opacity-60"
       >
         क्षेत्र सेभ
@@ -235,27 +287,32 @@ function LocalEditor({
   busy,
   onSave,
   onDelete,
+  isNew,
 }: {
   body: LocalBody;
   busy: boolean;
-  onSave: (payload: { id: string; name: string; type: string; post: string; ward?: string; candidates: Candidate[] }) => void;
+  isNew?: boolean;
+  onSave: (payload: { id?: string; name: string; type: string; post: string; ward?: string; status?: "pending" | "counting" | "declared"; candidates: Candidate[] }) => void;
   onDelete: () => void;
 }) {
   const [name, setName] = useState(body.name);
   const [type, setType] = useState(body.type);
   const [post, setPost] = useState(body.post);
   const [ward, setWard] = useState(body.ward);
+  const [status, setStatus] = useState(normalizeStatus(body.status));
   const [rows, setRows] = useState(body.candidates);
   useEffect(() => {
     setName(body.name);
     setType(body.type);
     setPost(body.post);
     setWard(body.ward);
+    setStatus(normalizeStatus(body.status));
     setRows(body.candidates);
   }, [body]);
   return (
     <div className="rounded-2xl border border-line p-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <h3 className="font-display text-xl">{isNew ? "नयाँ निकाय" : body.name}</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-sm font-medium">
           निकाय
           <input value={name} onChange={(e) => setName(e.target.value)} className={field} />
@@ -280,20 +337,30 @@ function LocalEditor({
           वडा (वैकल्पिक)
           <input value={ward} onChange={(e) => setWard(e.target.value)} className={field} />
         </label>
+        <label className="text-sm font-medium">
+          स्थिति
+          <select value={status} onChange={(e) => setStatus(normalizeStatus(e.target.value))} className={field}>
+            {SEAT_STATUS.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </label>
       </div>
       <CandidateFields rows={rows} setRows={setRows} />
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={busy}
-          onClick={() => onSave({ id: body.id, name, type, post, ward, candidates: rows })}
+          disabled={busy || !name.trim()}
+          onClick={() => onSave({ id: body.id || undefined, name, type, post, ward, status: normalizeStatus(status), candidates: rows.filter((r) => r.name.trim()) })}
           className="inline-flex min-h-10 items-center rounded-full bg-crimson px-4 text-sm font-semibold text-paper disabled:opacity-60"
         >
-          निकाय सेभ
+          {isNew ? "निकाय थप्नुहोस्" : "निकाय सेभ"}
         </button>
-        <button type="button" onClick={onDelete} className="text-sm font-semibold text-mark">
-          मेट्नुहोस्
-        </button>
+        {!isNew ? (
+          <button type="button" onClick={onDelete} className="text-sm font-semibold text-mark">
+            मेट्नुहोस्
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -331,11 +398,32 @@ function CandidateFields({
             className={field}
           />
           <input
+            value={row.symbol || row.meta || ""}
+            placeholder="चिह्न"
+            onChange={(e) => setRows(rows.map((r, n) => (n === i ? { ...r, symbol: e.target.value, meta: e.target.value } : r)))}
+            className={field}
+          />
+          <input
             value={row.photo || ""}
             placeholder="फोटो URL"
             onChange={(e) => setRows(rows.map((r, n) => (n === i ? { ...r, photo: e.target.value } : r)))}
             className={field}
           />
+          <input
+            value={row.age || ""}
+            placeholder="उमेर"
+            onChange={(e) => setRows(rows.map((r, n) => (n === i ? { ...r, age: e.target.value } : r)))}
+            className={field}
+          />
+          <select
+            value={row.gender || ""}
+            onChange={(e) => setRows(rows.map((r, n) => (n === i ? { ...r, gender: e.target.value } : r)))}
+            className={field}
+          >
+            {GENDERS.map((g) => (
+              <option key={g.id || "none"} value={g.id}>{g.label === "—" ? "लिङ्ग" : g.label}</option>
+            ))}
+          </select>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -379,6 +467,8 @@ function PeopleEditor({
 }) {
   const blank: Politician = { id: "", name: "", party: "", partySlug: "", photo: "", bio: "", post: "", place: "बारा", phone: "", email: "", education: "" };
   const [form, setForm] = useState<Politician>(blank);
+  const [q, setQ] = useState("");
+  const shown = people.filter((p) => `${p.name} ${p.party} ${p.place} ${p.post}`.toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <div className="space-y-4">
       <form
@@ -403,8 +493,9 @@ function PeopleEditor({
           प्रोफाइल सेभ
         </button>
       </form>
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="प्रोफाइल खोज्नुहोस्" className={field} />
       <ul className="divide-y divide-line">
-        {people.map((p) => (
+        {shown.map((p) => (
           <li key={p.id} className="flex items-center gap-3 py-3">
             {p.photo ? <img src={p.photo} alt="" className="size-12 rounded-full object-cover" /> : <span className="size-12 rounded-full bg-chip" />}
             <div className="min-w-0 flex-1">
@@ -418,8 +509,144 @@ function PeopleEditor({
             <button type="button" className="text-sm text-mark" onClick={() => onDelete(p.id)}>मेट्नुहोस्</button>
           </li>
         ))}
-        {!people.length ? <li className="py-3 text-sm text-muted">प्रोफाइल छैन।</li> : null}
+        {!shown.length ? <li className="py-3 text-sm text-muted">प्रोफाइल छैन।</li> : null}
       </ul>
+    </div>
+  );
+}
+
+function NoticeEditor({
+  notices,
+  busy,
+  onSave,
+  onDelete,
+}: {
+  notices: { id: string; title: string; body: string }[];
+  busy: boolean;
+  onSave: (row: { id?: string; title: string; body?: string }) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  return (
+    <div className="space-y-4">
+      <form
+        className="grid gap-3 rounded-2xl border border-line p-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave({ title, body });
+          setTitle("");
+          setBody("");
+        }}
+      >
+        <h3 className="font-display text-xl">निर्वाचन सूचना</h3>
+        <input value={title} required placeholder="शीर्षक" onChange={(e) => setTitle(e.target.value)} className={field} />
+        <textarea value={body} placeholder="विवरण" rows={3} onChange={(e) => setBody(e.target.value)} className={field} />
+        <button type="submit" disabled={busy} className="inline-flex min-h-10 items-center justify-center rounded-full bg-crimson px-4 text-sm font-semibold text-paper disabled:opacity-60">
+          सूचना थप्नुहोस्
+        </button>
+      </form>
+      <ul className="divide-y divide-line">
+        {notices.map((n) => (
+          <li key={n.id} className="flex items-start justify-between gap-3 py-3">
+            <div>
+              <p className="font-semibold">{n.title}</p>
+              {n.body ? <p className="text-sm text-muted">{n.body}</p> : null}
+            </div>
+            <button type="button" className="text-sm text-mark" onClick={() => onDelete(n.id)}>मेट्नुहोस्</button>
+          </li>
+        ))}
+        {!notices.length ? <li className="py-3 text-sm text-muted">सूचना छैन।</li> : null}
+      </ul>
+    </div>
+  );
+}
+
+function HomeSettings({
+  desk,
+  busy,
+  onFront,
+  onMeta,
+}: {
+  desk: ElectionData;
+  busy: boolean;
+  onFront: (mode: "home" | "hor" | "local") => void;
+  onMeta: (payload: { horYear: string; localYear: string; showEmbed: boolean }) => void;
+}) {
+  const years = electionYears(desk);
+  const [horYear, setHorYear] = useState(years.hor);
+  const [localYear, setLocalYear] = useState(years.local);
+  const [showEmbed, setShowEmbed] = useState(desk.showEmbed !== false);
+  useEffect(() => {
+    setHorYear(years.hor);
+    setLocalYear(years.local);
+    setShowEmbed(desk.showEmbed !== false);
+  }, [desk, years.hor, years.local]);
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-sm text-muted">निर्वाचन अपडेट खोल्दा पहिले के देखाउने?</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {([
+            ["home", "होम"],
+            ["hor", "प्रतिनिधिसभा"],
+            ["local", "स्थानीय निकाय"],
+          ] as const).map(([mode, label]) => (
+            <button
+              key={mode}
+              type="button"
+              disabled={busy}
+              onClick={() => onFront(mode)}
+              className={
+                (desk.frontPage || "home") === mode
+                  ? "rounded-full bg-crimson px-4 py-2 text-sm font-semibold text-paper"
+                  : "rounded-full border border-line px-4 py-2 text-sm"
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <form
+        className="grid gap-3 rounded-2xl border border-line p-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onMeta({ horYear, localYear, showEmbed });
+        }}
+      >
+        <h3 className="font-display text-xl">वर्ष र एम्बेड</h3>
+        <label className="text-sm font-medium">
+          प्रतिनिधिसभा निर्वाचन वर्ष
+          <input value={horYear} onChange={(e) => setHorYear(e.target.value)} className={field} placeholder="२०८२" />
+        </label>
+        <label className="text-sm font-medium">
+          स्थानीय निकाय निर्वाचन वर्ष
+          <input value={localYear} onChange={(e) => setLocalYear(e.target.value)} className={field} placeholder="२०७९" />
+        </label>
+        <div>
+          <p className="text-sm font-medium">एम्बेड कोड</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowEmbed(true)}
+              className={showEmbed ? "rounded-full bg-crimson px-4 py-2 text-sm font-semibold text-paper" : "rounded-full border border-line px-4 py-2 text-sm"}
+            >
+              देखाउने
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowEmbed(false)}
+              className={!showEmbed ? "rounded-full bg-crimson px-4 py-2 text-sm font-semibold text-paper" : "rounded-full border border-line px-4 py-2 text-sm"}
+            >
+              नदेखाउने
+            </button>
+          </div>
+        </div>
+        <button type="submit" disabled={busy} className="inline-flex min-h-10 items-center justify-center rounded-full bg-crimson px-4 text-sm font-semibold text-paper disabled:opacity-60">
+          सेटिङ सेभ
+        </button>
+      </form>
     </div>
   );
 }

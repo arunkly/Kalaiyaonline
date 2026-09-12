@@ -9,15 +9,18 @@ import {
   LineChart,
   Menu,
   MessageCircle,
+  Newspaper,
   Search,
   Shield,
   Type,
+  Users,
   Vote,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { AdSlot } from "@/components/ad-slot";
+import { AdPopup } from "@/components/ad-popup";
 import { AppLogo } from "@/components/app-logo";
 import { NoticeBell } from "@/components/notice-bell";
 import { SiteFooter } from "@/components/site-footer";
@@ -26,6 +29,7 @@ import { NewsTicker } from "@/components/news-ticker";
 import { WeatherBar } from "@/components/weather-bar";
 import { getAboutPage, type AboutPage } from "@/lib/about";
 import { cn } from "@/lib/cn";
+import { chromeItems } from "@/lib/chrome-nav";
 import { useCategories } from "@/lib/use-categories";
 import { useFeatures } from "@/components/features-provider";
 import { useSite } from "@/components/site-provider";
@@ -43,6 +47,23 @@ const MORE_NAV = [
   { to: "/chat", label: "च्याट", icon: MessageCircle, feature: "chat" },
 ] as const;
 
+const BAR_ICONS: Record<string, typeof Home> = {
+  home: Home,
+  gallery: Camera,
+  directory: Building2,
+  blood: Droplet,
+  election: Vote,
+  epaper: Newspaper,
+  chat: MessageCircle,
+  members: Users,
+  market: LineChart,
+  patro: CalendarDays,
+  dateConverter: CalendarDays,
+  preeti: Type,
+  about: Info,
+  privacy: Shield,
+};
+
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -51,6 +72,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const site = useSite();
   const moreNav = MORE_NAV.filter((item) => features[item.feature]);
   const navItems = [...NAV, ...moreNav];
+  const bottomItems = chromeItems(site.bottomBar, features);
+  const footerExtras = chromeItems(site.footerMenu, features).filter(
+    (item) => !site.bottomBar.includes(item.key),
+  );
   const [open, setOpen] = useState(false);
   const [footerOpen, setFooterOpen] = useState(false);
   const [about, setAbout] = useState<AboutPage | null>(null);
@@ -64,11 +89,16 @@ export function Shell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setOpen(false);
+    if (pathname.startsWith("/election/embed")) return;
     const key = featureForPath(pathname);
     if (key && features[key] === false) {
       void navigate({ to: "/" });
     }
   }, [pathname, features, navigate]);
+
+  if (pathname.startsWith("/election/embed")) {
+    return <div className="min-h-dvh bg-paper text-ink">{children}</div>;
+  }
 
   return (
     <div className="min-h-dvh text-ink">
@@ -203,18 +233,19 @@ export function Shell({ children }: { children: ReactNode }) {
       </main>
       <AdSlot slot="footer" className="mx-auto max-w-6xl px-4 py-4 sm:px-6" />
       <SiteFooter about={about} />
+      <AdPopup />
 
       <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="mx-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] rounded-2xl border border-line bg-white/95 shadow-[0_-8px_30px_rgb(16_38_26/0.12)] backdrop-blur-md">
           <div className="h-1 rounded-t-2xl bg-gradient-to-r from-crimson via-mark to-crimson" />
           <div className="flex px-1 py-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+          {bottomItems.map((item) => {
+            const Icon = BAR_ICONS[item.key] || Home;
             const active = pathname === item.to;
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                to={item.to as "/"}
                 className={cn(
                   "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold",
                   active ? "text-crimson" : "text-muted",
@@ -258,23 +289,12 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="fixed inset-x-0 bottom-24 z-40 mx-3 overflow-hidden rounded-2xl border border-line bg-white p-3 shadow-xl lg:hidden">
           <p className="px-1 pb-2 text-[11px] font-bold tracking-[0.16em] text-muted">मेनु</p>
           <div className="grid grid-cols-3 gap-2">
-            {[
-              { to: "/date-converter", label: "मिति कन्भर्टर", icon: CalendarDays, feature: "dateConverter" as const },
-              { to: "/preeti", label: "प्रीति कन्भर्टर", icon: Type, feature: "preeti" as const },
-              { to: "/market", label: "सेयर बजार", icon: LineChart, feature: "market" as const },
-              { to: "/patro", label: "पात्रो", icon: CalendarDays, feature: "patro" as const },
-              { to: "/blood", label: "रक्तदाता", icon: Droplet, feature: "blood" as const },
-              { to: "/election", label: "निर्वाचन", icon: Vote, feature: "election" as const },
-              { to: "/about", label: "हाम्रोबारे", icon: Info, feature: "about" as const },
-              { to: "/privacy", label: "गोपनीयता", icon: Shield, feature: "privacy" as const },
-            ]
-              .filter((item) => features[item.feature])
-              .map((item) => {
-              const Icon = item.icon;
+            {footerExtras.map((item) => {
+              const Icon = BAR_ICONS[item.key] || Home;
               return (
                 <Link
                   key={item.to}
-                  to={item.to}
+                  to={item.to as "/"}
                   onClick={() => setFooterOpen(false)}
                   className="flex flex-col items-center gap-1 rounded-2xl bg-chip px-2 py-3 text-center text-xs font-semibold"
                 >

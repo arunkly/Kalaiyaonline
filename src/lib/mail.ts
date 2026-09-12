@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export type MailSettings = {
@@ -77,7 +77,7 @@ export async function sendAppEmail(to: string, subject: string, html: string) {
 export const getMailSettings = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "settings");
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     const rows = await sql<{ fromEmail: string; fromName: string; resendKey: string }>`
@@ -101,7 +101,7 @@ export const saveMailSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "settings");
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     if (data.resendKey) {

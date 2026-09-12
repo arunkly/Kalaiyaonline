@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 
 export const FEATURE_CATALOG = [
@@ -17,7 +17,8 @@ export const FEATURE_CATALOG = [
   { key: "privacy", label: "गोपनीयता नीति", hint: "गोपनीयता पेज" },
   { key: "members", label: "दर्ता सदस्य", hint: "सदस्य सूची" },
   { key: "about", label: "हाम्रोबारे", hint: "बारेमा पेज" },
-  { key: "election", label: "निर्वाचन अपडेट", hint: "मधेश चुनाव नतिजा" },
+  { key: "election", label: "निर्वाचन अपडेट", hint: "बारा प्रतिनिधिसभा र स्थानीय निकाय" },
+  { key: "epaper", label: "ई-पेपर", hint: "मितिअनुसार PDF ई-पेपर" },
 ] as const;
 
 export type FeatureKey = (typeof FEATURE_CATALOG)[number]["key"];
@@ -38,6 +39,7 @@ export const DEFAULT_FEATURES: FeatureFlags = {
   members: true,
   about: true,
   election: true,
+  epaper: true,
 };
 
 export const FEATURE_PATHS: { prefix: string; key: FeatureKey }[] = [
@@ -54,6 +56,7 @@ export const FEATURE_PATHS: { prefix: string; key: FeatureKey }[] = [
   { prefix: "/member", key: "members" },
   { prefix: "/about", key: "about" },
   { prefix: "/election", key: "election" },
+  { prefix: "/epaper", key: "epaper" },
 ];
 
 export function featureForPath(pathname: string): FeatureKey | null {
@@ -102,7 +105,7 @@ export const saveFeatureFlags = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(z.object({ flags: z.any() }))
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "settings");
     const flags = normalizeFeatures(data.flags);
     const sql = await ensureTable();
     const json = JSON.stringify(flags);

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { siteOrigin } from "@/lib/site-url";
 
@@ -102,7 +102,7 @@ export const saveSeoSettings = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertAppAdmin(context.userId);
+    await assertCap(context.userId, "settings");
     const next = normalize(data);
     const sql = await ensureSeoTable();
     await sql`

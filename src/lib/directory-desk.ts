@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertAppAdmin } from "@/lib/admin-access";
+import { assertCap } from "@/lib/admin-access";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { DEFAULT_MAP, type MapSettings } from "@/lib/map-embed";
 
@@ -22,7 +22,7 @@ export type DirItem = {
 };
 
 async function assertAdmin(userId: string) {
-  await assertAppAdmin(userId);
+  await assertCap(userId, "directory");
 }
 
 function cleanHttpUrl(raw?: string) {

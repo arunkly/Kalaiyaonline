@@ -18,7 +18,7 @@ export function AdSlot({ slot, className = "" }: { slot: string; className?: str
   );
 }
 
-function AdCard({ ad }: { ad: AdItem }) {
+export function AdCard({ ad }: { ad: AdItem }) {
   const inner =
     ad.kind === "photo" && ad.imageUrl ? (
       <img src={ad.imageUrl} alt={ad.title || "विज्ञापन"} className="w-full rounded-xl object-cover" />

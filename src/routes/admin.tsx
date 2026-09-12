@@ -9,12 +9,13 @@ import { ContactDeskPanel } from "@/components/admin-contact-desk";
 import { BloodDeskPanel } from "@/components/admin-blood-desk";
 import { DirectoryDeskPanel } from "@/components/admin-directory-desk";
 import { GalleryDeskPanel } from "@/components/admin-gallery-desk";
+import { EpaperDeskPanel } from "@/components/admin-epaper-desk";
 import { UsersDeskPanel } from "@/components/admin-users-desk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { parseCategories } from "@/data/articles";
 import { formatBsDateTime } from "@/lib/bs-date";
-import { getMyAccess } from "@/lib/admin-access";
+import { getMyAccess, type Cap, type StaffAccess } from "@/lib/admin-access";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/cn";
@@ -44,8 +45,25 @@ function defaultCategory(cats: DeskCategory[]) {
     || "local";
 }
 
-type Desk = "news" | "gallery" | "directory" | "blood" | "election" | "users" | "ads" | "contact" | "site" | "seo" | "theme" | "modules" | "settings";
+type Desk = "news" | "gallery" | "directory" | "blood" | "election" | "epaper" | "users" | "ads" | "contact" | "site" | "seo" | "theme" | "modules" | "settings";
 type Tab = "posts" | "categories" | "trash";
+
+const DESKS: { id: Desk; label: string; cap: Cap }[] = [
+  { id: "news", label: "समाचार डेस्क", cap: "news" },
+  { id: "gallery", label: "ग्यालरी डेस्क", cap: "gallery" },
+  { id: "directory", label: "डाइरेक्ट्री डेस्क", cap: "directory" },
+  { id: "blood", label: "रक्तदाता डेस्क", cap: "blood" },
+  { id: "election", label: "निर्वाचन डेस्क", cap: "election" },
+  { id: "epaper", label: "ई-पेपर डेस्क", cap: "epaper" },
+  { id: "users", label: "प्रयोगकर्ता", cap: "users" },
+  { id: "ads", label: "विज्ञापन डेस्क", cap: "settings" },
+  { id: "contact", label: "सम्पर्क सन्देश", cap: "settings" },
+  { id: "site", label: "साइट", cap: "settings" },
+  { id: "seo", label: "SEO", cap: "settings" },
+  { id: "theme", label: "रूप / लोगो", cap: "settings" },
+  { id: "modules", label: "मोड्युल", cap: "settings" },
+  { id: "settings", label: "सेटिङ", cap: "settings" },
+];
 
 const field =
   "mt-1 w-full rounded-xl border border-line bg-paper px-3 py-3 outline-none focus:border-crimson";
@@ -53,6 +71,7 @@ const field =
 function AdminPage() {
   const { user, isPending } = useCurrentUserState();
   const [allowed, setAllowed] = useState(false);
+  const [access, setAccess] = useState<StaffAccess | null>(null);
   const [desk, setDesk] = useState<Desk>("news");
   const [tab, setTab] = useState<Tab>("posts");
   const [stories, setStories] = useState<DeskStory[] | null>(null);
@@ -99,15 +118,20 @@ function AdminPage() {
       return;
     }
     void getMyAccess()
-      .then((row) => setAllowed(row.admin))
+      .then((row) => {
+        setAllowed(row.admin);
+        setAccess(row);
+        const first = DESKS.find((d) => row.caps[d.cap]);
+        if (first) setDesk(first.id);
+      })
       .catch(() => setAllowed(false));
   }, [user?.id]);
 
   useEffect(() => {
-    if (!isPending && user && allowed) {
+    if (!isPending && user && allowed && access?.caps.news) {
       void refresh();
     }
-  }, [isPending, user, allowed]);
+  }, [isPending, user, allowed, access?.caps.news]);
 
   if (isPending) {
     return <div className="h-40 animate-pulse rounded-md bg-chip" />;
@@ -276,8 +300,12 @@ function AdminPage() {
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: "posts", label: "समाचार", count: stories?.length },
-    { id: "categories", label: "विभाग", count: cats.length },
-    { id: "trash", label: "ट्र्यास", count: trash?.length },
+    ...(access?.caps.newsDelete
+      ? [
+          { id: "categories" as const, label: "विभाग", count: cats.length },
+          { id: "trash" as const, label: "ट्र्यास", count: trash?.length },
+        ]
+      : []),
   ];
 
   return (
@@ -294,50 +322,35 @@ function AdminPage() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto">
-        {(
-          [
-            ["news", "समाचार डेस्क"],
-            ["gallery", "ग्यालरी डेस्क"],
-            ["directory", "डाइरेक्ट्री डेस्क"],
-            ["blood", "रक्तदाता डेस्क"],
-            ["election", "निर्वाचन डेस्क"],
-            ["users", "प्रयोगकर्ता"],
-            ["ads", "विज्ञापन डेस्क"],
-            ["contact", "सम्पर्क सन्देश"],
-            ["site", "साइट"],
-            ["seo", "SEO"],
-            ["theme", "रूप / लोगो"],
-            ["modules", "मोड्युल"],
-            ["settings", "सेटिङ"],
-          ] as const
-        ).map(([id, label]) => (
+        {DESKS.filter((item) => access?.caps[item.cap]).map((item) => (
           <button
-            key={id}
+            key={item.id}
             type="button"
-            onClick={() => setDesk(id)}
+            onClick={() => setDesk(item.id)}
             className={cn(
               "shrink-0 rounded-full px-4 py-2 text-sm font-semibold",
-              desk === id ? "bg-crimson text-paper" : "border border-line bg-surface text-ink-soft",
+              desk === item.id ? "bg-crimson text-paper" : "border border-line bg-surface text-ink-soft",
             )}
           >
-            {label}
+            {item.label}
           </button>
         ))}
       </div>
 
-      {desk === "gallery" ? <GalleryDeskPanel /> : null}
-      {desk === "directory" ? <DirectoryDeskPanel /> : null}
-      {desk === "blood" ? <BloodDeskPanel /> : null}
-      {desk === "election" ? <ElectionDeskPanel /> : null}
-      {desk === "users" ? <UsersDeskPanel /> : null}
-      {desk === "ads" ? <AdsDeskPanel /> : null}
-      {desk === "contact" ? <ContactDeskPanel /> : null}
-      {desk === "site" ? <SiteDeskPanel /> : null}
-      {desk === "seo" ? <SeoDeskPanel /> : null}
-      {desk === "theme" ? <ThemeDeskPanel /> : null}
-      {desk === "modules" ? <FeaturesDeskPanel /> : null}
-      {desk === "settings" ? <SettingsDeskPanel /> : null}
-      {desk === "news" ? (
+      {desk === "gallery" && access?.caps.gallery ? <GalleryDeskPanel /> : null}
+      {desk === "directory" && access?.caps.directory ? <DirectoryDeskPanel /> : null}
+      {desk === "blood" && access?.caps.blood ? <BloodDeskPanel /> : null}
+      {desk === "election" && access?.caps.election ? <ElectionDeskPanel /> : null}
+      {desk === "epaper" && access?.caps.epaper ? <EpaperDeskPanel /> : null}
+      {desk === "users" && access?.caps.users ? <UsersDeskPanel /> : null}
+      {desk === "ads" && access?.caps.settings ? <AdsDeskPanel /> : null}
+      {desk === "contact" && access?.caps.settings ? <ContactDeskPanel /> : null}
+      {desk === "site" && access?.caps.settings ? <SiteDeskPanel /> : null}
+      {desk === "seo" && access?.caps.settings ? <SeoDeskPanel /> : null}
+      {desk === "theme" && access?.caps.settings ? <ThemeDeskPanel /> : null}
+      {desk === "modules" && access?.caps.settings ? <FeaturesDeskPanel /> : null}
+      {desk === "settings" && access?.caps.settings ? <SettingsDeskPanel /> : null}
+      {desk === "news" && access?.caps.news ? (
         <>
       <div className="flex gap-1 overflow-x-auto border-b border-line">
         {tabs.map((t) => (
@@ -525,6 +538,7 @@ function AdminPage() {
                       >
                         सम्पादन
                       </button>
+                      {access?.caps.newsDelete ? (
                       <button
                         type="button"
                         onClick={() => void onTrash(s.id)}
@@ -532,6 +546,7 @@ function AdminPage() {
                       >
                         ट्र्यास
                       </button>
+                      ) : null}
                     </div>
                   </li>
                 ))}
