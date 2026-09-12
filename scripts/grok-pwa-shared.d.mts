@@ -40,6 +40,7 @@ export type GrokHeadContext = {
   host?: string | null;
   cwd?: string;
   site?: OgSite;
+  skipOg?: boolean;
 };
 
 export declare function readOgSite(cwd?: string): OgSite;
